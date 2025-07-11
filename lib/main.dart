@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ukopenrice/homeScreen.dart';
 // https://localizely.com/blog/flutter-localization-step-by-step/?tab=using-gen-l10n
 import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:ukopenrice/restaurant_details.dart';
@@ -37,17 +38,18 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      home: const HomeScreen(),
       // home: MyHomePage(title: AppLocalizations.of(context)!.appTitle),
-      home: RestaurantDetailsWidget(
-        name: "name",
-        address: "address",
-        phoneNumber: "phoneNumber",
-        cuisineType: "cuisineType",
-        rating: 5,
-        id: '',
-        openHours: [("monday - friday", "9:00 AM - 5:00 PM")],
-        paymentMethod: ["cash", "credit card"],
-      ),
+      // home: RestaurantDetailsWidget(
+      //   name: "name",
+      //   address: "address",
+      //   phoneNumber: "phoneNumber",
+      //   cuisineType: "cuisineType",
+      //   rating: 5,
+      //   id: '',
+      //   openHours: [("monday - friday", "9:00 AM - 5:00 PM")],
+      //   paymentMethod: ["cash", "credit card"],
+      // ),
     );
   }
 }
