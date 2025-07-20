@@ -38,6 +38,8 @@ dependencies:
     sdk: flutter
   intl: any
   provider: ^6.1.5
+  http: ^1.0.0
+  platform_device_id: ^1.0.1
 
 dev_dependencies:
   flutter_test:

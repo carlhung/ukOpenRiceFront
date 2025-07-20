@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ukopenrice/homeScreen.dart';
 // https://localizely.com/blog/flutter-localization-step-by-step/?tab=using-gen-l10n
 import 'package:ukopenrice/l10n/app_localizations.dart';
-import 'package:ukopenrice/restaurant_details.dart';
+import 'package:ukopenrice/routers.dart';
+import 'package:ukopenrice/view_controllers/log_in.dart';
 
 // final FlutterLocalization localization = FlutterLocalization.instance;
 
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'UK Rice',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // routes: Routes.allRoutes,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const HomeScreen(),
+      home: const LogIn(),
       // home: MyHomePage(title: AppLocalizations.of(context)!.appTitle),
       // home: RestaurantDetailsWidget(
       //   name: "name",

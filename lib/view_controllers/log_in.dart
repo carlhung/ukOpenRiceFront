@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'package:ukopenrice/l10n/app_localizations.dart';
+import 'package:ukopenrice/models/http_client.dart';
+import 'dart:developer';
+
+final class LogIn extends StatelessWidget {
+  const LogIn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    final httpClient = Httpclient.shared;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.appTitle)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "User Name:",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: usernameController,
+                    decoration: InputDecoration(
+                      labelText: "user name",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(width: 20),
+                Text(
+                  "Password:",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: passwordController,
+                    decoration: InputDecoration(
+                      labelText: "password",
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Handle login logic here
+                final username = usernameController.text;
+                final password = passwordController.text;
+                httpClient.signIn(username, password).then((_) {
+                  log("done");
+                });
+              },
+              child: Text("Log In"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
