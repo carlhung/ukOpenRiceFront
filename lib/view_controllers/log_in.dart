@@ -67,7 +67,7 @@ final class LogIn extends StatelessWidget {
                 // Handle login logic here
                 final username = usernameController.text;
                 final password = passwordController.text;
-                httpClient.signIn(username, password).then((_) {
+                httpClient.logIn(username, password).then((_) {
                   log("done");
                 });
               },

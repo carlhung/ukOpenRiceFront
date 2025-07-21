@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ukopenrice/homeScreen.dart';
+import 'package:ukopenrice/view_controllers/add_resturant_information.dart';
+// import 'package:ukopenrice/view_controllers/homeScreen.dart';
 // https://localizely.com/blog/flutter-localization-step-by-step/?tab=using-gen-l10n
 import 'package:ukopenrice/l10n/app_localizations.dart';
-import 'package:ukopenrice/routers.dart';
-import 'package:ukopenrice/view_controllers/log_in.dart';
+// import 'package:ukopenrice/routers.dart';
+// import 'package:ukopenrice/view_controllers/log_in.dart';
 
 // final FlutterLocalization localization = FlutterLocalization.instance;
 
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LogIn(),
+      home: const AddResturantInformation(), //LogIn(),
       // home: MyHomePage(title: AppLocalizations.of(context)!.appTitle),
       // home: RestaurantDetailsWidget(
       //   name: "name",

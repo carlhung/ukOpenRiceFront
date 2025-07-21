@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import '../helpers.dart';
 import 'dart:convert';
 import 'dart:io';
+import './resturant_info.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -35,7 +36,7 @@ class Httpclient {
     return Uri(scheme: 'https', host: hostEndPoint, port: 8000, path: path);
   }
 
-  Future<void> signIn(String name, String password) async {
+  Future<void> logIn(String name, String password) async {
     final uri = getUri('/token');
 
     final id = await getDeviceID();
@@ -68,6 +69,29 @@ class Httpclient {
       this.deviceID = "";
       isAdmin = false;
       throw Exception('Failed to log in: ${response.statusCode}');
+    }
+  }
+
+  Future<void> submitRestaurantInformation(ResturantInfo info) async {
+    final uri = getUri('/submitrestaurantinformation');
+
+    final body = jsonEncode(info.toJson());
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      // TODO: Handle successful submission
+    } else {
+      throw Exception(
+        'Failed to submit restaurant information: ${response.statusCode}',
+      );
     }
   }
 }

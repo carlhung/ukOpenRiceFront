@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ukopenrice/view_controllers/log_in.dart';
-import 'homeScreen.dart';
+import 'view_controllers/homeScreen.dart';
 
 class Routes {
   // Route name constants

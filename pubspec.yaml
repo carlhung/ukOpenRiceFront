@@ -38,8 +38,10 @@ dependencies:
     sdk: flutter
   intl: any
   provider: ^6.1.5
-  http: ^1.0.0
+  http: ^0.13.1
   platform_device_id: ^1.0.1
+  flutter_picker_plus: ^1.5.2
+  flutter_multi_select_items: ^0.4.3
 
 dev_dependencies:
   flutter_test:
