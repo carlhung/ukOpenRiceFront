@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:ukopenrice/view_controllers/log_in.dart';
 import '../helpers.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -19,10 +20,11 @@ class Httpclient {
   static final shared = Httpclient();
 
   final isInternal = false;
-  String username = '';
+  String username = ''; //'admin';
   String token = '';
   String deviceID = '';
   bool isAdmin = false;
+  String password = ''; //'eatRice123abc!';
 
   Httpclient() {
     HttpOverrides.global = MyHttpOverrides();
@@ -63,35 +65,69 @@ class Httpclient {
       username = name;
       isAdmin = data['is_admin'] ?? false;
       this.deviceID = id ?? '';
+      this.password = password;
     } else {
       token = "";
       username = "";
       this.deviceID = "";
       isAdmin = false;
+      this.password = '';
       throw Exception('Failed to log in: ${response.statusCode}');
     }
   }
 
   Future<void> submitRestaurantInformation(ResturantInfo info) async {
-    final uri = getUri('/submitrestaurantinformation');
+    await reloginWrapper(() async {
+      final uri = getUri('/submitrestaurantinformation');
 
-    final body = jsonEncode(info.toJson());
+      final body = jsonEncode(info.toJson());
 
-    final response = await http.post(
-      uri,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      // TODO: Handle successful submission
-    } else {
-      throw Exception(
-        'Failed to submit restaurant information: ${response.statusCode}',
+      final response = await http.post(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: body,
       );
+
+      if (response.statusCode == 200) {
+        // TODO: Handle successful submission
+      } else if (response.statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw Exception(
+          'Failed to submit restaurant information: ${response.statusCode}',
+        );
+      }
+    });
+  }
+
+  // true means login successful.
+  Future<bool> _relogIn() async {
+    if (username.isNotEmpty && password.isNotEmpty) {
+      await logIn(username, password);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> reloginWrapper(Future<void> Function() execute) async {
+    while (true) {
+      try {
+        await execute();
+        return;
+      } on Unauthorized401Exception {
+        final isSuccessful = await _relogIn();
+        if (isSuccessful) {
+          continue;
+        } else {
+          throw Exception("Failed to login");
+        }
+      }
     }
   }
 }
+
+class Unauthorized401Exception implements Exception {}
