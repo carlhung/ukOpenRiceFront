@@ -42,6 +42,7 @@ dependencies:
   platform_device_id: ^1.0.1
   flutter_picker_plus: ^1.5.2
   flutter_multi_select_items: ^0.4.3
+  uuid: ^4.4.2
 
 dev_dependencies:
   flutter_test:

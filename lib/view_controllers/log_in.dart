@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:ukopenrice/models/http_client.dart';
-import 'dart:developer';
+import 'package:ukopenrice/routes.dart';
 
 final class LogIn extends StatelessWidget {
   const LogIn({super.key});
@@ -63,13 +64,35 @@ final class LogIn extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Handle login logic here
                 final username = usernameController.text;
                 final password = passwordController.text;
-                httpClient.logIn(username, password).then((_) {
-                  log("done");
-                });
+                if (username.isNotEmpty && password.isNotEmpty) {
+                  try {
+                    await httpClient.logIn(username, password);
+                    if (context.mounted) {
+                      if (httpClient.isAdmin) {
+                        Navigator.pushNamed(
+                          context,
+                          Routes.addRestaurantInfoScreen,
+                        );
+                      } else {
+                        // TODO: push view for non-admin user.
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      showErrorOnSnackBar(context, e);
+                    }
+                  }
+
+                  // httpClient.logIn(username, password).then((_) {
+                  //   if (context.mounted) {
+                  //     Navigator.pushNamed(context, Routes.addRestaurantInfoScreen);
+                  //   }
+                  // });
+                }
               },
               child: Text("Log In"),
             ),

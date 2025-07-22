@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:flutter_picker_plus/flutter_picker_plus.dart';
 import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
@@ -36,8 +37,7 @@ final class _AddResturantInformationState
   final extraInfoCtrllor = TextEditingController();
 
   ResturantInfo? _createResturantInfo() {
-    if (restuarantChineseNameCtrllor.text.isNotEmpty &&
-        restuarantEnglishNameCtrllor.text.isNotEmpty &&
+    if (restuarantEnglishNameCtrllor.text.isNotEmpty &&
         descriptionCtrllor.text.isNotEmpty &&
         addressCtrllor.text.isNotEmpty &&
         phoneCtrllor.text.isNotEmpty &&
@@ -163,7 +163,10 @@ final class _AddResturantInformationState
             spacing: 10,
             children: [
               _createTextField(restuarantChineseNameCtrllor, "Name in Chinese"),
-              _createTextField(restuarantEnglishNameCtrllor, "Name in English"),
+              _createTextField(
+                restuarantEnglishNameCtrllor,
+                "Name in English (Required)",
+              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 10,
@@ -176,7 +179,7 @@ final class _AddResturantInformationState
                     child: TextField(
                       controller: cuisineCtrllor,
                       decoration: InputDecoration(
-                        labelText: "Cuisine",
+                        labelText: "Cuisine (Required)",
                         border: OutlineInputBorder(),
                       ),
                       readOnly: true,
@@ -188,7 +191,7 @@ final class _AddResturantInformationState
               if (cuisineCtrllor.text == Cuisine.otherCuisine.name)
                 TextField(
                   decoration: InputDecoration(
-                    labelText: "Cuisine",
+                    labelText: "Cuisine (Required)",
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) => setState(() {
@@ -196,11 +199,11 @@ final class _AddResturantInformationState
                   }),
                 ),
 
-              _createTextView(descriptionCtrllor, "description"),
-              _createTextField(addressCtrllor, "Address"),
+              _createTextView(descriptionCtrllor, "description (Required)"),
+              _createTextField(addressCtrllor, "Address (Required)"),
               _createTextField(
                 phoneCtrllor,
-                "Phone Number",
+                "Phone Number (Required)",
                 keyboardType: TextInputType.phone,
               ),
               _createTextField(webCtrllor, "Website"),
@@ -208,13 +211,14 @@ final class _AddResturantInformationState
               _createTextField(instagramCtrllor, "Instagram"),
               _createTextField(
                 emailCtrllor,
-                "Email",
+                "Email (Required)",
                 keyboardType: TextInputType.emailAddress,
               ),
-              _createTextView(openingHoursCtrllor, "Opening Hours"),
+              _createTextView(openingHoursCtrllor, "Opening Hours (Required)"),
               _createTickBox("Access Reservation", _accessReservation, (value) {
                 _accessReservation = value;
               }),
+              Text("Payment methods (Required): "),
               MultiSelectContainer(
                 maxSelectableCount: null,
                 items: Payment.allPayments.map((payment) {
@@ -242,15 +246,22 @@ final class _AddResturantInformationState
               _createTickBox("delivery", _delivery, (value) {
                 _delivery = value;
               }),
-              _createTextField(priceRangeCtrllor, "Price Range"),
+              _createTextField(priceRangeCtrllor, "Price Range (Required)"),
               _createTextView(extraInfoCtrllor, "Extra Information"),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   final info = _createResturantInfo();
                   if (info != null) {
-                    httpClient.submitRestaurantInformation(info).then((_) {
-                      // TODO: handle
-                    });
+                    try {
+                      await httpClient.submitRestaurantInformation(info);
+                      if (context.mounted) {
+                        // TODO: push a new vc.
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        showErrorOnSnackBar(context, e);
+                      }
+                    }
                   }
                 },
                 child: Text("Submit"),
