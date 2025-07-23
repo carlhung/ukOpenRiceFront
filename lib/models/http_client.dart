@@ -5,6 +5,8 @@ import 'dart:io';
 import './resturant_info.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -20,12 +22,12 @@ class MyHttpOverrides extends HttpOverrides {
 class Httpclient {
   static final shared = Httpclient();
 
-  final isInternal = false;
-  String username = ''; //'admin';
+  final isInternal = true;
+  String username = '';
   String token = '';
   String deviceID = '';
   bool isAdmin = false;
-  String password = ''; //'eatRice123abc!';
+  String password = '';
 
   Httpclient() {
     HttpOverrides.global = MyHttpOverrides();
@@ -117,6 +119,37 @@ class Httpclient {
     });
   }
 
+  Future<void> uploadRestaurantImages(List<BodyPair> parameters) async {
+    final boundary = generateBoundaryString();
+    await reloginWrapper(() async {
+      final uri = getUri('/uploadrestaurantimages');
+      final body = await createBodyWithParameters(boundary, parameters);
+      if (body != null) {
+        final response = await http.post(
+          uri,
+          headers: {
+            "Content-Type": "multipart/form-data; boundary=$boundary",
+            "Authorization": "Bearer $token",
+          },
+          body: body,
+        );
+
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (response.statusCode == 200) {
+          final String? result = data["result"];
+          if (result == "successful") {
+          } else {
+            throw handlerFailure(data);
+          }
+        } else if (response.statusCode == 401) {
+          throw Unauthorized401Exception();
+        } else {
+          throw handlerFailure(data);
+        }
+      }
+    });
+  }
+
   // true means login successful.
   Future<bool> _relogIn() async {
     if (username.isNotEmpty && password.isNotEmpty) {
@@ -143,19 +176,23 @@ class Httpclient {
     }
   }
 
-  Uint8List? createBodyWithParameters<T>(
-    List<BodyPair<T>> parameters, {
+  String generateBoundaryString() {
+    return "Boundary-${Uuid().v4()}";
+  }
+
+  Future<Uint8List?> createBodyWithParameters<T>(
+    String boundary,
+    List<BodyPair> parameters, {
     String name = "files",
-  }) {
-    final boundary = "Boundary-${Uuid().v4()}";
+  }) async {
+    // final boundary = "Boundary-${Uuid().v4()}";
     final body = BytesBuilder();
 
     for (var bodyPair in parameters) {
       final value = bodyPair.value;
-      if (value is EncodableBodyValue<T>) {
-        final encodedData = utf8.encode(
-          value.encodable.toString(),
-        ); // Replace with actual encoding
+      if (value is EncodableBodyValue) {
+        final jsonString = jsonEncode(value.encodable.toJson());
+        final encodedData = utf8.encode(jsonString);
         final prefix = fileBodyPrefix(
           boundary,
           name,
@@ -165,11 +202,10 @@ class Httpclient {
         body.add(prefix);
         body.add(encodedData);
         body.add(fileBodySuffix);
-      } else if (value is ImagesBodyValue<T>) {
+      } else if (value is ImagesBodyValue) {
         for (var i = 0; i < value.images.length; i++) {
           final filename = "image$i.jpg";
-          final data = convertToData(value.images[i]);
-          if (data == null) return null;
+          final data = await convertToJpgBytes(value.images[i]);
           final mimetype = mimeType(data) ?? "application/octet-stream";
           final prefix = fileBodyPrefix(boundary, name, filename, mimetype);
           body.add(prefix);
@@ -181,8 +217,23 @@ class Httpclient {
 
     final endOfBoundary = utf8.encode("--$boundary--\r\n");
     body.add(endOfBoundary);
-
     return body.takeBytes();
+  }
+
+  Future<Uint8List> convertToJpgBytes(XFile xfile, {int quality = 90}) async {
+    // Read the original image as bytes
+    final originalBytes = await xfile.readAsBytes();
+
+    // Decode the image (handles PNG, JPG, etc.)
+    final decodedImage = img.decodeImage(originalBytes);
+    if (decodedImage == null) {
+      throw Exception("Unable to decode image.");
+    }
+
+    // Encode it as JPEG with specified quality
+    final jpgBytes = img.encodeJpg(decodedImage, quality: quality);
+
+    return Uint8List.fromList(jpgBytes);
   }
 
   Uint8List fileBodyPrefix(
@@ -229,14 +280,8 @@ class Unauthorized401Exception implements Exception {}
 
 final class ServerError implements Exception {
   final String detail;
-  // final int statusCode;
-  // final Map<String, String> headers;
 
-  ServerError({
-    required this.detail,
-    // required this.statusCode,
-    // this.headers = const {},
-  });
+  ServerError({required this.detail});
 
   static ServerError? fromJson(Map<String, dynamic> json) {
     if (json['detail'] is! String) {
@@ -258,21 +303,25 @@ final class ServerError implements Exception {
   }
 }
 
-class BodyPair<T> {
+abstract class Encodable {
+  Map<String, dynamic> toJson();
+}
+
+class BodyValue {}
+
+class BodyPair {
   final String key;
-  final BodyValue<T> value;
+  final BodyValue value;
 
   BodyPair({required this.key, required this.value});
 }
 
-abstract class BodyValue<T> {}
-
-class ImagesBodyValue<T> extends BodyValue<T> {
-  final List<Uint8List> images; // Replace dynamic with your image type
+final class ImagesBodyValue extends BodyValue {
+  final List<XFile> images;
   ImagesBodyValue(this.images);
 }
 
-class EncodableBodyValue<T> extends BodyValue<T> {
+class EncodableBodyValue<T extends Encodable> extends BodyValue {
   final T encodable;
   EncodableBodyValue(this.encodable);
 }

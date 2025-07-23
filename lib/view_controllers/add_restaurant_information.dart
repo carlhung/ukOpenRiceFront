@@ -5,6 +5,7 @@ import 'package:flutter_picker_plus/flutter_picker_plus.dart';
 import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
 import 'package:ukopenrice/models/resturant_info.dart';
 import 'package:ukopenrice/models/http_client.dart';
+import 'package:ukopenrice/routes.dart';
 
 class AddResturantInformation extends StatefulWidget {
   const AddResturantInformation({super.key});
@@ -255,7 +256,11 @@ final class _AddResturantInformationState
                     try {
                       await httpClient.submitRestaurantInformation(info);
                       if (context.mounted) {
-                        // TODO: push a new vc.
+                        Navigator.pushNamed(
+                          context,
+                          Routes.uploadPhotoScreen,
+                          arguments: info.restuarantEnglishName,
+                        );
                       }
                     } catch (e) {
                       if (context.mounted) {
