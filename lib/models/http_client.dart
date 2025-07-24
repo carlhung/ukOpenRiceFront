@@ -41,6 +41,39 @@ class Httpclient {
     return Uri(scheme: 'https', host: hostEndPoint, port: 8000, path: path);
   }
 
+  Future<void> removeRestaurant() async {
+    reloginWrapper(() async {
+      final uri = getUri('/removerestaurant');
+    });
+  }
+
+  Future<List<String>> getListOfRestaurants() async {
+    return await reloginWrapper(() async {
+      final uri = getUri('/removerestaurantinfo');
+
+      final response = await http.get(
+        uri,
+        headers: {"Authorization": "Bearer $token"},
+      );
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final String? result = data["result"];
+        if (result == "successful") {
+          final List<String> restaurantNames = List<String>.from(
+            data["restaurant names"],
+          );
+          return restaurantNames;
+        } else {
+          throw handlerFailure(data);
+        }
+      } else if (response.statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw handlerFailure(data);
+      }
+    });
+  }
+
   Future<void> logIn(String name, String password) async {
     if (name.isEmpty && password.isEmpty) {
       throw Exception("empty username and password");
@@ -160,11 +193,11 @@ class Httpclient {
     }
   }
 
-  Future<void> reloginWrapper(Future<void> Function() execute) async {
+  Future<T> reloginWrapper<T>(Future<T> Function() execute) async {
     while (true) {
       try {
-        await execute();
-        return;
+        final result = await execute();
+        return result;
       } on Unauthorized401Exception {
         final isSuccessful = await _relogIn();
         if (isSuccessful) {
@@ -252,11 +285,6 @@ class Httpclient {
 
   // final fileBodySuffix = utf8.encode("\r\n") as Uint8List;
   final fileBodySuffix = utf8.encode("\r\n");
-
-  Uint8List? convertToData(Uint8List image, {double compressionQuality = 0.9}) {
-    // TODO: Implement image to bytes conversion here
-    return null;
-  }
 
   String? mimeType(Uint8List data) {
     if (data.isEmpty) return null;

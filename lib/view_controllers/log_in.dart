@@ -75,7 +75,7 @@ final class LogIn extends StatelessWidget {
                       if (httpClient.isAdmin) {
                         Navigator.pushNamed(
                           context,
-                          Routes.addRestaurantInfoScreen,
+                          Routes.restaurantInputMode,
                         );
                       } else {
                         // TODO: push view for non-admin user.
