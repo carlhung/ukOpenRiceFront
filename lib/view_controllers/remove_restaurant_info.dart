@@ -28,6 +28,8 @@ final class _RemoveRestaurantInfoState extends State<RemoveRestaurantInfo> {
   }
 
   Future<void> removeRestaurant(int index) async {
+    final name = restaurantNames[index];
+    await httpClient.removeRestaurant(name);
     setState(() {
       restaurantNames.removeAt(index);
     });

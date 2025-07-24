@@ -37,13 +37,40 @@ class Httpclient {
     return isInternal ? "192.168.1.9" : "carlhung.asuscomm.com";
   }
 
-  Uri getUri(String path) {
-    return Uri(scheme: 'https', host: hostEndPoint, port: 8000, path: path);
+  Uri getUri(String path, {Map<String, String> queryParameters = const {}}) {
+    return Uri(
+      scheme: 'https',
+      host: hostEndPoint,
+      port: 8000,
+      path: path,
+      queryParameters: queryParameters,
+    );
   }
 
-  Future<void> removeRestaurant() async {
+  Future<void> removeRestaurant(String name) async {
     reloginWrapper(() async {
-      final uri = getUri('/removerestaurant');
+      final uri = getUri(
+        '/deleterestaurant',
+        queryParameters: {"restaurantName": name},
+      );
+      final response = await http.get(
+        uri,
+        headers: {"Authorization": "Bearer $token"},
+      );
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final String? result = data["result"];
+        if (result == "successful") {
+          return;
+        } else {
+          throw handlerFailure(data);
+        }
+      } else if (statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw handlerFailure(data);
+      }
     });
   }
 
@@ -218,7 +245,6 @@ class Httpclient {
     List<BodyPair> parameters, {
     String name = "files",
   }) async {
-    // final boundary = "Boundary-${Uuid().v4()}";
     final body = BytesBuilder();
 
     for (var bodyPair in parameters) {
