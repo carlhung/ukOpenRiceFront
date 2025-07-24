@@ -78,7 +78,11 @@ final class _UploadPhotosState extends State<UploadPhotos> {
                           ),
                         ),
                       ]);
-                      if (context.mounted) Navigator.pop(context);
+                      // if (context.mounted) Navigator.pop(context);
+                      if (context.mounted) {
+                        int count = 0;
+                        Navigator.of(context).popUntil((_) => count++ >= 2);
+                      }
                     } catch (e) {
                       if (context.mounted) {
                         showErrorOnSnackBar(context, e);
