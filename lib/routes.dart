@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ukopenrice/view_controllers/add_restaurant_information.dart';
 import 'package:ukopenrice/view_controllers/log_in.dart';
+// import 'package:ukopenrice/view_controllers/open_hours_selector.dart';
 import 'package:ukopenrice/view_controllers/remove_restaurant_info.dart';
 import 'package:ukopenrice/view_controllers/restaurant_input_mode.dart';
 import 'package:ukopenrice/view_controllers/upload_photos.dart';
@@ -12,8 +13,10 @@ class Routes {
   static const String homeScreen = '/';
   static const String logInScreen = '/login';
   static const String addRestaurantInfoScreen = '/add_restaurant_information';
-  static const String restaurantInputMode = 'Restaurant_input_mode';
-  static const String removeRestaurantInfo = 'remove_restaurant_info';
+  static const String restaurantInputMode = '/restaurant_input_mode';
+  static const String removeRestaurantInfo = '/remove_restaurant_info';
+  // static const String openHoursSelector = '/open_hours_selector';
+  // static const String openHoursSelector = '/';
 
   /// The map used to define routes to be provided in [MaterialApp]
   static final Map<String, WidgetBuilder> allRoutes = {
@@ -23,5 +26,6 @@ class Routes {
     uploadPhotoScreen: (context) => const UploadPhotos(),
     restaurantInputMode: (context) => const RestaurantInputMode(),
     removeRestaurantInfo: (context) => const RemoveRestaurantInfo(),
+    // openHoursSelector: (context) => const OpenHoursSelectorViewController(),
   };
 }

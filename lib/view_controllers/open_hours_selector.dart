@@ -1,57 +1,76 @@
 import 'package:flutter/material.dart';
 
-class OpeningHoursSelector extends StatefulWidget {
-  final Function(String)? onHoursChanged;
+// @override
+// Widget build(BuildContext context) {
+//   return Scaffold(
+//     appBar: AppBar(title: Text("Remove Mode")),
+//     body: Center(),
+//   );
+// }
 
-  const OpeningHoursSelector({Key? key, this.onHoursChanged}) : super(key: key);
+final class DayOperationsTime {
+  final String time;
+  List<String> days = [];
 
-  @override
-  _OpeningHoursSelectorState createState() => _OpeningHoursSelectorState();
+  DayOperationsTime({required this.time});
 }
 
-class _OpeningHoursSelectorState extends State<OpeningHoursSelector> {
-  Map<String, List<TimeSlot>> schedule = {
-    'Today': [
-      TimeSlot(TimeOfDay(hour: 9, minute: 0), TimeOfDay(hour: 13, minute: 0)),
-    ],
+class OpenHoursSelectorViewController extends StatelessWidget {
+  const OpenHoursSelectorViewController({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Open Hours Selector")),
+      body: Center(child: SingleChildScrollView(child: OpeningHoursSelector())),
+    );
+  }
+}
+
+class OpeningHoursSelector extends StatefulWidget {
+  final Function(Map<String, List<TimeSlot>>)? onHoursChanged;
+
+  const OpeningHoursSelector({super.key, this.onHoursChanged});
+
+  @override
+  OpeningHoursSelectorState createState() => OpeningHoursSelectorState();
+}
+
+class OpeningHoursSelectorState extends State<OpeningHoursSelector> {
+  static final Map<String, List<TimeSlot>> defaultSchedule = {
     'Mon': [],
-    'Tue': [
-      TimeSlot(TimeOfDay(hour: 18, minute: 0), TimeOfDay(hour: 22, minute: 0)),
-    ],
-    'Wed': [
-      TimeSlot(TimeOfDay(hour: 18, minute: 0), TimeOfDay(hour: 22, minute: 0)),
-    ],
-    'Thu': [
-      TimeSlot(TimeOfDay(hour: 11, minute: 30), TimeOfDay(hour: 22, minute: 0)),
-    ],
-    'Fri': [
-      TimeSlot(TimeOfDay(hour: 11, minute: 30), TimeOfDay(hour: 22, minute: 0)),
-    ],
-    'Sat': [
-      TimeSlot(TimeOfDay(hour: 11, minute: 30), TimeOfDay(hour: 22, minute: 0)),
-    ],
-    'Sun': [
-      TimeSlot(TimeOfDay(hour: 11, minute: 30), TimeOfDay(hour: 22, minute: 0)),
-    ],
+    'Tue': [],
+    'Wed': [],
+    'Thu': [],
+    'Fri': [],
+    'Sat': [],
+    'Sun': [],
   };
+
+  Map<String, List<TimeSlot>> schedule = defaultSchedule;
 
   @override
   void initState() {
     super.initState();
-    // Add second time slot for "Today"
-    schedule['Today']!.add(
-      TimeSlot(TimeOfDay(hour: 17, minute: 0), TimeOfDay(hour: 23, minute: 0)),
-    );
-    _notifyChanges();
   }
 
   void _notifyChanges() {
     if (widget.onHoursChanged != null) {
-      widget.onHoursChanged!(generateFormattedSchedule());
+      widget.onHoursChanged!(schedule);
     }
   }
 
-  String generateFormattedSchedule() {
+  static String generateFormattedSchedule(
+    Map<String, List<TimeSlot>> schedule,
+  ) {
+    final lines = toLines(schedule);
+    // final today = lines.removeAt(0);
+    final groupedLines = _groupConsecutiveDays(lines);
+    final result = groupedLines.join('\n');
+    return result; //'$today\n$result';
+  }
+
+  static List<String> toLines(Map<String, List<TimeSlot>> schedule) {
     List<String> lines = [];
 
     for (String day in schedule.keys) {
@@ -66,88 +85,66 @@ class _OpeningHoursSelectorState extends State<OpeningHoursSelector> {
             )
             .join(', ');
 
-        if (day == 'Today') {
-          lines.add('$day, $timeString');
-        } else {
-          // Group consecutive days with same hours
-          lines.add('$day, $timeString');
-        }
+        // if (day == 'Today') {
+        //   lines.add('$day, $timeString');
+        // } else {
+        //   // Group consecutive days with same hours
+        lines.add('$day, $timeString');
+        // }
       }
     }
-
-    return _groupConsecutiveDays(lines);
+    return lines;
   }
 
-  String _groupConsecutiveDays(List<String> lines) {
-    List<String> result = [];
-    Map<String, List<String>> timeGroups = {};
+  // The `lines` has to be mon - sun.
+  static List<String> _groupConsecutiveDays(List<String> lines) {
+    final dayAndOperationTimes = lines.map((line) {
+      final components = line.split(", ");
+      final dayStr = components.removeAt(0);
+      final operationTimes = components.join(", ");
+      return [dayStr, operationTimes];
+    });
 
-    // Group days by their time slots (excluding Today)
-    for (String line in lines) {
-      if (line.startsWith('Today')) {
-        result.add(line);
-        continue;
-      }
-
-      List<String> parts = line.split(', ');
-      String day = parts[0];
-      String time = parts.length > 1 ? parts[1] : 'Closed';
-
-      if (!timeGroups.containsKey(time)) {
-        timeGroups[time] = [];
-      }
-      timeGroups[time]!.add(day);
-    }
-
-    // Format grouped days
-    for (String time in timeGroups.keys) {
-      List<String> days = timeGroups[time]!;
-      if (days.length == 1) {
-        result.add('${days[0]}, $time');
+    List<DayOperationsTime> result = [];
+    for (final each in dayAndOperationTimes) {
+      final day = each[0];
+      final operationTime = each[1];
+      final DayOperationsTime last;
+      if (result.isNotEmpty) {
+        last = result.last;
       } else {
-        String dayRange = _formatDayRange(days);
-        result.add('$dayRange, $time');
+        last = DayOperationsTime(time: operationTime);
+        result.add(last);
       }
-    }
 
-    return result.join('\n');
-  }
-
-  String _formatDayRange(List<String> days) {
-    List<String> weekOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    days.sort((a, b) => weekOrder.indexOf(a).compareTo(weekOrder.indexOf(b)));
-
-    if (days.length <= 2) {
-      return days.join(' - ');
-    }
-
-    // Check for consecutive days
-    List<List<String>> groups = [];
-    List<String> currentGroup = [days[0]];
-
-    for (int i = 1; i < days.length; i++) {
-      int currentIndex = weekOrder.indexOf(days[i]);
-      int previousIndex = weekOrder.indexOf(days[i - 1]);
-
-      if (currentIndex == previousIndex + 1) {
-        currentGroup.add(days[i]);
+      if (last.time == operationTime) {
+        last.days.add(day);
       } else {
-        groups.add(List.from(currentGroup));
-        currentGroup = [days[i]];
+        final dayOperationsTime = DayOperationsTime(time: operationTime);
+        dayOperationsTime.days.add(day);
+        result.add(dayOperationsTime);
       }
     }
-    groups.add(currentGroup);
 
-    return groups
-        .map((group) {
-          if (group.length == 1) return group[0];
-          if (group.length == 2) return '${group[0]} - ${group[1]}';
-          return '${group.first} - ${group.last}';
-        })
-        .join(', ');
+    return addDaysToOneStr(result);
   }
 
-  String _formatTime(TimeOfDay time) {
+  static List<String> addDaysToOneStr(
+    List<DayOperationsTime> listOpertionDayAndTime,
+  ) {
+    return listOpertionDayAndTime.map((elm) {
+      final days = elm.days;
+      var daysStr = days[0];
+      final len = days.length;
+      if (len > 1) {
+        final lastDay = days[len - 1];
+        daysStr = "$daysStr - $lastDay";
+      }
+      return "$daysStr | ${elm.time}";
+    }).toList();
+  }
+
+  static String _formatTime(TimeOfDay time) {
     String hour = time.hour.toString();
     String minute = time.minute == 0
         ? '00'
@@ -189,7 +186,7 @@ class _OpeningHoursSelectorState extends State<OpeningHoursSelector> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    generateFormattedSchedule(),
+                    generateFormattedSchedule(schedule),
                     style: TextStyle(fontFamily: 'monospace'),
                   ),
                 ],
@@ -353,6 +350,40 @@ class _OpeningHoursSelectorState extends State<OpeningHoursSelector> {
   }
 }
 
+extension CompareTimeSlots on List<TimeSlot> {
+  // Helper function to compare two TimeOfDay objects
+  int compareTimeOfDay(TimeOfDay a, TimeOfDay b) {
+    return a.timeOfDayToMinutes().compareTo(b.timeOfDayToMinutes());
+  }
+
+  bool areTimeSlotsInOrder() {
+    if (isEmpty || length == 1) {
+      return true;
+    }
+
+    for (int i = 0; i < length; i++) {
+      TimeSlot current = this[i];
+
+      // Check if start time is before end time within the same slot
+      if (compareTimeOfDay(current.start, current.end) >= 0) {
+        return false;
+      }
+
+      // Check if current slot comes before next slot with no overlap
+      if (i < length - 1) {
+        TimeSlot next = this[i + 1];
+
+        // Current slot's end should be strictly before next slot's start
+        if (compareTimeOfDay(current.end, next.start) >= 0) {
+          return false; // slots overlap or touch
+        }
+      }
+    }
+
+    return true;
+  }
+}
+
 class TimeSlot {
   TimeOfDay start;
   TimeOfDay end;
@@ -360,74 +391,8 @@ class TimeSlot {
   TimeSlot(this.start, this.end);
 }
 
-// Example usage widget
-class OpeningHoursDemo extends StatefulWidget {
-  @override
-  _OpeningHoursDemoState createState() => _OpeningHoursDemoState();
-}
-
-class _OpeningHoursDemoState extends State<OpeningHoursDemo> {
-  String currentSchedule = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Opening Hours Selector'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            OpeningHoursSelector(
-              onHoursChanged: (schedule) {
-                setState(() {
-                  currentSchedule = schedule;
-                });
-              },
-            ),
-            if (currentSchedule.isNotEmpty)
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Final Output:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            currentSchedule,
-                            style: TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
+extension ConverToMins on TimeOfDay {
+  int timeOfDayToMinutes() {
+    return hour * 60 + minute;
   }
 }

@@ -65,6 +65,7 @@ final class ResturantInfo {
   final String description;
   final String address;
   final String phone;
+  final String map;
   final String web;
   final String facebook;
   final String instagram;
@@ -84,6 +85,7 @@ final class ResturantInfo {
     required this.description,
     required this.address,
     required this.phone,
+    required this.map,
     required this.web,
     required this.facebook,
     required this.instagram,
@@ -101,7 +103,7 @@ final class ResturantInfo {
     final Map<String, dynamic> data = {};
 
     void addIfNotEmpty(String key, String value) {
-      if (value.isNotEmpty) data[key] = value;
+      if (value.isNotEmpty) data[key] = value.trim();
     }
 
     addIfNotEmpty('restuarantChineseName', restuarantChineseName);
@@ -111,6 +113,7 @@ final class ResturantInfo {
     addIfNotEmpty('address', address);
     addIfNotEmpty('phone', phone);
     addIfNotEmpty('web', web);
+    addIfNotEmpty('map', map);
     addIfNotEmpty('facebook', facebook);
     addIfNotEmpty('instagram', instagram);
     addIfNotEmpty('email', email);
@@ -119,7 +122,9 @@ final class ResturantInfo {
     addIfNotEmpty('extraInfo', extraInfo);
 
     data['accessReservation'] = accessReservation;
-    data['selectedPayments'] = selectedPayments.map((p) => p.name).toList();
+    data['selectedPayments'] = selectedPayments
+        .map((p) => p.name.trim())
+        .toList();
     data['takeaway'] = takeaway;
     data['delivery'] = delivery;
 

@@ -6,6 +6,8 @@ import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
 import 'package:ukopenrice/models/resturant_info.dart';
 import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
+import 'package:ukopenrice/view_controllers/open_hours_selector.dart';
+import 'package:ukopenrice/view_controllers/price_selector.dart';
 
 class AddResturantInformation extends StatefulWidget {
   const AddResturantInformation({super.key});
@@ -25,27 +27,32 @@ final class _AddResturantInformationState
   final descriptionCtrllor = TextEditingController();
   final addressCtrllor = TextEditingController();
   final phoneCtrllor = TextEditingController();
+  final mapCtrllor = TextEditingController();
   final webCtrllor = TextEditingController();
   final facebookCtrllor = TextEditingController();
   final instagramCtrllor = TextEditingController();
   final emailCtrllor = TextEditingController();
-  final openingHoursCtrllor = TextEditingController();
   bool _accessReservation = false;
   Set<Payment> selectedPayments = {};
   bool _takeaway = false;
   bool _delivery = false;
-  final priceRangeCtrllor = TextEditingController();
+  // final priceRangeCtrllor = TextEditingController();
+  PriceFilter? _currentFilter;
   final extraInfoCtrllor = TextEditingController();
+
+  Map<String, List<TimeSlot>> schedule =
+      OpeningHoursSelectorState.defaultSchedule;
 
   ResturantInfo? _createResturantInfo() {
     if (restuarantEnglishNameCtrllor.text.isNotEmpty &&
         descriptionCtrllor.text.isNotEmpty &&
         addressCtrllor.text.isNotEmpty &&
+        mapCtrllor.text.isNotEmpty &&
         phoneCtrllor.text.isNotEmpty &&
-        emailCtrllor.text.isNotEmpty &&
-        openingHoursCtrllor.text.isNotEmpty &&
-        selectedPayments.isNotEmpty &&
-        priceRangeCtrllor.text.isNotEmpty) {
+        openHoursTosavableString().isNotEmpty &&
+        isScheduleInOrder() &&
+        (_currentFilter?.toSavableString.isNotEmpty ?? false) &&
+        selectedPayments.isNotEmpty) {
       if (cuisineCtrllor.text.isEmpty) {
         return null;
       }
@@ -61,27 +68,39 @@ final class _AddResturantInformationState
       }
 
       return ResturantInfo(
-        restuarantChineseName: restuarantChineseNameCtrllor.text,
-        restuarantEnglishName: restuarantEnglishNameCtrllor.text,
-        cuisine: cuisine,
-        description: descriptionCtrllor.text,
-        address: addressCtrllor.text,
-        phone: phoneCtrllor.text,
-        web: webCtrllor.text,
-        facebook: facebookCtrllor.text,
-        instagram: instagramCtrllor.text,
-        email: emailCtrllor.text,
-        openingHours: openingHoursCtrllor.text,
+        restuarantChineseName: restuarantChineseNameCtrllor.text.trim(),
+        restuarantEnglishName: restuarantEnglishNameCtrllor.text.trim(),
+        cuisine: cuisine.trim(),
+        description: descriptionCtrllor.text.trim(),
+        address: addressCtrllor.text.trim(),
+        phone: phoneCtrllor.text.trim(),
+        map: mapCtrllor.text.trim(),
+        web: webCtrllor.text.trim(),
+        facebook: facebookCtrllor.text.trim(),
+        instagram: instagramCtrllor.text.trim(),
+        email: emailCtrllor.text.trim(),
+        openingHours: openHoursTosavableString().trim(),
         accessReservation: _accessReservation,
         selectedPayments: selectedPayments,
         takeaway: _takeaway,
         delivery: _delivery,
-        priceRange: priceRangeCtrllor.text,
-        extraInfo: extraInfoCtrllor.text,
+        priceRange: _currentFilter!.toSavableString.trim(),
+        extraInfo: extraInfoCtrllor.text.trim(),
       );
     } else {
       return null;
     }
+  }
+
+  String openHoursTosavableString() {
+    return OpeningHoursSelectorState.toLines(schedule).join("\n");
+  }
+
+  bool isScheduleInOrder() {
+    for (final elm in schedule.values) {
+      if (!elm.areTimeSlotsInOrder()) return false;
+    }
+    return true;
   }
 
   void _showCuisinePicker(BuildContext context) {
@@ -202,6 +221,7 @@ final class _AddResturantInformationState
 
               _createTextView(descriptionCtrllor, "description (Required)"),
               _createTextField(addressCtrllor, "Address (Required)"),
+              _createTextField(mapCtrllor, "Map (Required)"),
               _createTextField(
                 phoneCtrllor,
                 "Phone Number (Required)",
@@ -215,7 +235,17 @@ final class _AddResturantInformationState
                 "Email (Required)",
                 keyboardType: TextInputType.emailAddress,
               ),
-              _createTextView(openingHoursCtrllor, "Opening Hours (Required)"),
+              Text(
+                'Open Hours:',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              OpeningHoursSelector(
+                onHoursChanged: (timeSlots) {
+                  setState(() {
+                    schedule = timeSlots;
+                  });
+                },
+              ),
               _createTickBox("Access Reservation", _accessReservation, (value) {
                 _accessReservation = value;
               }),
@@ -247,7 +277,15 @@ final class _AddResturantInformationState
               _createTickBox("delivery", _delivery, (value) {
                 _delivery = value;
               }),
-              _createTextField(priceRangeCtrllor, "Price Range (Required)"),
+              // _createTextField(priceRangeCtrllor, "Price Range (Required)"),
+              Text("Price Range (Required):"),
+              PriceSelectorWidget(
+                onPriceChanged: (filter) {
+                  setState(() {
+                    _currentFilter = filter;
+                  });
+                },
+              ),
               _createTextView(extraInfoCtrllor, "Extra Information"),
               ElevatedButton(
                 onPressed: () async {
@@ -267,6 +305,11 @@ final class _AddResturantInformationState
                         showErrorOnSnackBar(context, e);
                       }
                     }
+                  } else {
+                    showErrorOnSnackBar(
+                      context,
+                      "either missing required fields or wrong open hours",
+                    );
                   }
                 },
                 child: Text("Submit"),
