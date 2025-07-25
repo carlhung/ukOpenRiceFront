@@ -3,8 +3,8 @@ import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import 'package:ukopenrice/models/http_client.dart';
+import 'package:ukopenrice/routes.dart';
 
 class UploadPhotos extends StatefulWidget {
   const UploadPhotos({super.key});
@@ -78,10 +78,11 @@ final class _UploadPhotosState extends State<UploadPhotos> {
                           ),
                         ),
                       ]);
-                      // if (context.mounted) Navigator.pop(context);
                       if (context.mounted) {
-                        int count = 0;
-                        Navigator.of(context).popUntil((_) => count++ >= 2);
+                        Navigator.popUntil(
+                          context,
+                          ModalRoute.withName(Routes.restaurantInputMode),
+                        );
                       }
                     } catch (e) {
                       if (context.mounted) {
