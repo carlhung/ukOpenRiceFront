@@ -64,6 +64,7 @@ final class ResturantInfo {
   final String cuisine;
   final String description;
   final String address;
+  final String city;
   final String phone;
   final String map;
   final String web;
@@ -76,6 +77,7 @@ final class ResturantInfo {
   final bool takeaway;
   final bool delivery;
   final String priceRange;
+  final String currencyCode;
   final String extraInfo;
 
   ResturantInfo({
@@ -84,6 +86,7 @@ final class ResturantInfo {
     required this.cuisine,
     required this.description,
     required this.address,
+    required this.city,
     required this.phone,
     required this.map,
     required this.web,
@@ -96,6 +99,7 @@ final class ResturantInfo {
     required this.accessReservation,
     required this.takeaway,
     required this.delivery,
+    required this.currencyCode,
     required this.selectedPayments,
   });
 
@@ -111,6 +115,7 @@ final class ResturantInfo {
     addIfNotEmpty('cuisine', cuisine);
     addIfNotEmpty('description', description);
     addIfNotEmpty('address', address);
+    addIfNotEmpty('city', city);
     addIfNotEmpty('phone', phone);
     addIfNotEmpty('web', web);
     addIfNotEmpty('map', map);
@@ -119,6 +124,7 @@ final class ResturantInfo {
     addIfNotEmpty('email', email);
     addIfNotEmpty('openingHours', openingHours);
     addIfNotEmpty('priceRange', priceRange);
+    addIfNotEmpty('currencyCode', currencyCode);
     addIfNotEmpty('extraInfo', extraInfo);
 
     data['accessReservation'] = accessReservation;

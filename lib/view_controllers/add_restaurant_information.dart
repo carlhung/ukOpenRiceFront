@@ -26,6 +26,7 @@ final class _AddResturantInformationState
   String otherCuisine = '';
   final descriptionCtrllor = TextEditingController();
   final addressCtrllor = TextEditingController();
+  final cityCtrllor = TextEditingController();
   final phoneCtrllor = TextEditingController();
   final mapCtrllor = TextEditingController();
   final webCtrllor = TextEditingController();
@@ -47,6 +48,7 @@ final class _AddResturantInformationState
     if (restuarantEnglishNameCtrllor.text.isNotEmpty &&
         descriptionCtrllor.text.isNotEmpty &&
         addressCtrllor.text.isNotEmpty &&
+        cityCtrllor.text.isNotEmpty &&
         mapCtrllor.text.isNotEmpty &&
         phoneCtrllor.text.isNotEmpty &&
         openHoursTosavableString().isNotEmpty &&
@@ -73,6 +75,7 @@ final class _AddResturantInformationState
         cuisine: cuisine.trim(),
         description: descriptionCtrllor.text.trim(),
         address: addressCtrllor.text.trim(),
+        city: cityCtrllor.text.trim(),
         phone: phoneCtrllor.text.trim(),
         map: mapCtrllor.text.trim(),
         web: webCtrllor.text.trim(),
@@ -85,6 +88,7 @@ final class _AddResturantInformationState
         takeaway: _takeaway,
         delivery: _delivery,
         priceRange: _currentFilter!.toSavableString.trim(),
+        currencyCode: _currentFilter?.currency?.code ?? Currency.gbp.code,
         extraInfo: extraInfoCtrllor.text.trim(),
       );
     } else {
@@ -101,6 +105,18 @@ final class _AddResturantInformationState
       if (!elm.areTimeSlotsInOrder()) return false;
     }
     return true;
+  }
+
+  void _showCityPicker(BuildContext context) {
+    Picker(
+      adapter: PickerDataAdapter<String>(pickerData: cities),
+      title: Text('Select a city'),
+      onConfirm: (Picker picker, List<int> value) {
+        setState(() {
+          cityCtrllor.text = picker.getSelectedValues().first;
+        });
+      },
+    ).showModal(context);
   }
 
   void _showCuisinePicker(BuildContext context) {
@@ -221,6 +237,17 @@ final class _AddResturantInformationState
 
               _createTextView(descriptionCtrllor, "description (Required)"),
               _createTextField(addressCtrllor, "Address (Required)"),
+
+              TextField(
+                controller: cityCtrllor,
+                decoration: InputDecoration(
+                  labelText: "City (Required)",
+                  border: OutlineInputBorder(),
+                ),
+                readOnly: true,
+                onTap: () => _showCityPicker(context),
+              ),
+
               _createTextField(mapCtrllor, "Map (Required)"),
               _createTextField(
                 phoneCtrllor,
@@ -321,6 +348,95 @@ final class _AddResturantInformationState
     );
   }
 }
+
+// https://www.gov.uk/government/publications/list-of-cities/list-of-cities-html#fn:1
+List<String> cities =
+    """
+Bath
+Birmingham
+Bradford
+Brighton & Hove
+Bristol
+Cambridge
+Canterbury
+Carlisle
+Chelmsford
+Chester
+Chichester
+Colchester
+Coventry
+Derby
+Doncaster
+Durham
+Ely
+Exeter
+Gloucester
+Hereford
+Kingston-upon-Hull
+Lancaster
+Leeds
+Leicester
+Lichfield
+Lincoln
+Liverpool
+London
+Manchester
+Milton Keynes
+Newcastle-upon-Tyne
+Norwich
+Nottingham
+Oxford
+Peterborough
+Plymouth
+Portsmouth
+Preston
+Ripon
+Salford
+Salisbury
+Sheffield
+Southampton
+Southend-on-Sea
+St Albans
+Stoke on Trent
+Sunderland
+Truro
+Wakefield
+Wells
+Westminster
+Winchester
+Wolverhampton
+Worcester
+York
+Armagh
+Bangor
+Belfast
+Lisburn
+Londonderry
+Newry
+Aberdeen
+Dundee
+Dunfermline
+Edinburgh
+Glasgow
+Inverness
+Perth
+Stirling
+Bangor
+Cardiff
+Newport
+St Asaph
+St Davids
+Swansea
+Wrexham
+Douglas
+Overseas Territories
+Hamilton
+City of Gibraltar
+Stanley
+Jamestown
+"""
+        .split("\n")
+        .toList();
 
 // 1.餐廳基本資料
 // 餐廳名稱（中英文）
