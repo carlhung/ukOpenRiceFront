@@ -5,14 +5,22 @@ import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 
 final class LogIn extends StatelessWidget {
-  const LogIn({super.key});
+  LogIn({super.key});
+
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final httpClient = Httpclient.shared;
+
+  // @override
+  // void dispose() {
+  //   [usernameController, passwordController].forEach((controller) {
+  //     controller.dispose();
+  //   });
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final usernameController = TextEditingController();
-    final passwordController = TextEditingController();
-    final httpClient = Httpclient.shared;
-
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.appTitle)),
       body: Center(

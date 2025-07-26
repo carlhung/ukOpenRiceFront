@@ -44,6 +44,28 @@ final class _AddResturantInformationState
   Map<String, List<TimeSlot>> schedule =
       OpeningHoursSelectorState.defaultSchedule;
 
+  @override
+  void dispose() {
+    for (final vc in [
+      restuarantChineseNameCtrllor,
+      restuarantEnglishNameCtrllor,
+      cuisineCtrllor,
+      descriptionCtrllor,
+      addressCtrllor,
+      cityCtrllor,
+      phoneCtrllor,
+      mapCtrllor,
+      webCtrllor,
+      facebookCtrllor,
+      instagramCtrllor,
+      emailCtrllor,
+      extraInfoCtrllor,
+    ]) {
+      vc.dispose();
+    }
+    super.dispose();
+  }
+
   ResturantInfo? _createResturantInfo() {
     if (restuarantEnglishNameCtrllor.text.isNotEmpty &&
         descriptionCtrllor.text.isNotEmpty &&
