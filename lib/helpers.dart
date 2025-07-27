@@ -7,6 +7,6 @@ Future<String?> getDeviceID() async {
 
 void showErrorOnSnackBar(BuildContext context, Object error) {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(duration: Duration(seconds: 5), content: Text('error: $error')),
+    SnackBar(duration: Duration(seconds: 5), content: Text(error.toString())),
   );
 }

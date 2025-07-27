@@ -4,20 +4,25 @@ import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 
-final class LogIn extends StatelessWidget {
-  LogIn({super.key});
+final class LogIn extends StatefulWidget {
+  const LogIn({super.key});
 
+  @override
+  State<StatefulWidget> createState() => _LogInState();
+}
+
+class _LogInState extends State<LogIn> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final httpClient = Httpclient.shared;
 
-  // @override
-  // void dispose() {
-  //   [usernameController, passwordController].forEach((controller) {
-  //     controller.dispose();
-  //   });
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    for (var controller in [usernameController, passwordController]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

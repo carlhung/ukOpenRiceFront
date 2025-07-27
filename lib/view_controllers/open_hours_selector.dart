@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
 
-// @override
-// Widget build(BuildContext context) {
-//   return Scaffold(
-//     appBar: AppBar(title: Text("Remove Mode")),
-//     body: Center(),
-//   );
-// }
-
 final class DayOperationsTime {
   final String time;
   List<String> days = [];
@@ -85,12 +77,7 @@ class OpeningHoursSelectorState extends State<OpeningHoursSelector> {
             )
             .join(', ');
 
-        // if (day == 'Today') {
-        //   lines.add('$day, $timeString');
-        // } else {
-        //   // Group consecutive days with same hours
         lines.add('$day, $timeString');
-        // }
       }
     }
     return lines;
