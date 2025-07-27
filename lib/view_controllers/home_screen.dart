@@ -19,7 +19,9 @@ final class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // TODO: Navigate to main app screen.
+                  },
                   child: const Text("Skip Login"),
                 ),
                 ElevatedButton(
