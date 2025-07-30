@@ -23,112 +23,33 @@ class _HomeScreenState extends State<HomeScreen> {
   var cuisine = '';
   var city = '';
   var stars = '';
+  var isOpenNowSelected = false;
   final httpClient = Httpclient.shared;
-  bool isFilterApplied = false;
-  List<String> cityList = [
-    "London",
-    "Manchester",
-    "Birmingham",
-    "Leeds",
-    "Glasgow",
-    "Liverpool",
-    "Newcastle",
-    "Sheffield",
-    "Bristol",
-    "Nottingham",
-    "Cardiff",
-    "Edinburgh",
-    "Leicester",
-    "Coventry",
-    "Bradford",
-    "Brighton",
-    "Hull",
-    "Plymouth",
-    "Stoke-on-Trent",
-    "Wolverhampton",
-    "Derby",
-    "Swansea",
-    "Southampton",
-    "Aberdeen",
-    "Portsmouth",
-    "Northampton",
-    "Dundee",
-    "Luton",
-    "Sunderland",
-    "Warrington",
-    "Swindon",
-    "Reading",
-    "Milton Keynes",
-    "York",
-    "Blackpool",
-    "Bolton",
-    "Stockport",
-    "Bournemouth",
-    "Poole",
-    "Middlesbrough",
-    "Wigan",
-    "Huddersfield",
-    "Southend-on-Sea",
-    "Slough",
-    "Cheltenham",
-    "Cambridge",
-    "Oxford",
-    "Exeter",
-    "Ipswich",
-    "Salisbury",
-    "Bath",
-    "Chester",
-    "Gloucester",
-    "Lincoln",
-    "Norwich",
-    "Wakefield",
-    "Belfast",
-    "Dublin",
-    "Cork",
-    "Galway",
-    "Limerick",
-    "Waterford",
-    "Kilkenny",
-    "Sligo",
-    "Tralee",
-    "Letterkenny",
-    "Drogheda",
-    "Dundalk",
-    "Athlone",
-  ];
-  List<String> cuisineList = [
-    "Spaish",
-    "Indian",
-    "Chinese",
-    "Italian",
-    "French",
-    "Thai",
-    "Japanese",
-    "Korean",
-    "Vietnamese",
-    "American",
-    "Mexican",
-    "Mediterranean",
-    "Middle Eastern",
-    "Caribbean",
-    "African",
-    "British",
-    "Greek",
-    "Turkish",
-    "Portuguese",
-    "German",
-    "Russian",
-    "Polish",
-    "Czech",
-    "Hungarian",
-    "Austrian",
-    "Belgian",
-    "Dutch",
-    "Scandinavian",
-    "Finnish",
-    "Icelandic",
-  ];
-  List<String> starList = ['★☆☆☆☆', '★★☆☆☆', '★★★☆☆', '★★★★☆', '★★★★★'];
+  // bool isFilterApplied = false;
+  List<String> cityList = [];
+  List<String> cuisineList = [];
+  final starList = ['★☆☆☆☆', '★★☆☆☆', '★★★☆☆', '★★★★☆', '★★★★★'];
+
+  @override
+  void initState() {
+    super.initState();
+    httpClient
+        .filterData()
+        .then((data) {
+          if (context.mounted) {
+            setState(() {
+              cityList = data.$1;
+              cuisineList = data.$2;
+              // starList = data['stars'] as List<String>;
+            });
+          }
+        })
+        .catchError((e) {
+          if (context.mounted) {
+            showErrorOnSnackBar(context, e);
+          }
+        });
+  }
 
   @override
   void dispose() {
@@ -267,31 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Expanded(
-  //                     child: TextField(
-  //                       controller: cuisineCtrllor,
-  //                       decoration: InputDecoration(
-  //                         labelText: "Cuisine (Required)",
-  //                         border: OutlineInputBorder(),
-  //                       ),
-  //                       readOnly: true,
-  //                       onTap: () => _showCuisinePicker(context),
-  //                     ),
-  //                   ),
-
-  // void _showCuisinePicker(BuildContext context) {
-  //   Picker(
-  //     adapter: PickerDataAdapter<String>(pickerData: cuisineList),
-  //     title: Text('Select a cuisine'),
-  //     onConfirm: (Picker picker, List<int> value) {
-  //       setState(() {
-  //         cuisineCtrllor.text = picker.getSelectedValues().first;
-  //       });
-  //     },
-  //   ).showModal(context);
-  // }
-
-  void showPicker(
+  void _showPicker(
     BuildContext context,
     List<String> data,
     void Function(String) callback,
@@ -307,58 +204,101 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _homeScreen(BuildContext context) {
     return Column(
+      spacing: 20,
       mainAxisAlignment: MainAxisAlignment.start,
-      // crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 10,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _createTextButton(city.isEmpty ? "City" : city, () {
+                _showPicker(context, cityList, (str) {
+                  setState(() {
+                    city = str;
+                  });
+                });
+              }),
+              _createTextButton(cuisine.isEmpty ? "Cuisine" : cuisine, () {
+                _showPicker(context, cuisineList, (str) {
+                  setState(() {
+                    cuisine = str;
+                  });
+                });
+              }),
+              _createTextButton(stars.isEmpty ? "Rating" : stars, () {
+                _showPicker(context, starList, (str) {
+                  setState(() {
+                    stars = str;
+                  });
+                });
+              }),
+              _createTextButton(
+                "Open Now",
+                () {
+                  setState(() {
+                    isOpenNowSelected = !isOpenNowSelected;
+                  });
+                },
+                backgroundColor: isOpenNowSelected
+                    ? const Color.fromARGB(255, 192, 6, 3)
+                    : const Color.fromARGB(255, 246, 243, 243),
+              ),
+              _createTextButton(
+                "Apply Filter",
+                () {
+                  setState(() {
+                    // TODO: call API to get data
+                  });
+                },
+                backgroundColor: const Color.fromARGB(255, 192, 6, 3),
+                // backgroundColor: isFilterApplied
+                //     ? const Color.fromARGB(255, 192, 6, 3)
+                //     : const Color.fromARGB(255, 246, 243, 243),
+              ),
+              _createTextButton("Reset", () {
+                setState(() {
+                  city = '';
+                  cuisine = '';
+                  stars = '';
+                  isOpenNowSelected = false;
+                  // isFilterApplied = false;
+                });
+              }, backgroundColor: Colors.white),
+            ],
+          ),
+        ),
+        Text(
+          "Discover By Location",
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         Row(
           spacing: 10,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _createTextFieldButton(
-              context,
-              cuisine.isEmpty ? "Cuisine" : cuisine,
-              cuisineList,
-              (str) => setState(() {
-                cuisine = str;
-              }),
-            ),
-            _createTextFieldButton(
-              context,
-              city.isEmpty ? "City" : city,
-              cityList,
-              (str) => setState(() {
-                city = str;
-              }),
-            ),
-            _createTextFieldButton(
-              context,
-              stars.isEmpty ? "Rate" : stars,
-              starList,
-              (str) => setState(() {
-                stars = str;
-              }),
-            ),
-          ],
+          children: [],
         ),
       ],
     );
   }
 
-  Widget _createTextFieldButton(
-    BuildContext context,
+  Widget _createTextButton(
     String label,
-    List<String> dataList,
-    void Function(String) callback,
-  ) {
+    void Function() completionHandler, {
+    Color backgroundColor = const Color.fromARGB(255, 246, 243, 243),
+  }) {
     return SizedBox(
       width: 100,
       height: 40,
       child: GestureDetector(
+        onTap: completionHandler,
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 246, 243, 243),
+            color: backgroundColor,
             border: Border.all(color: Colors.grey[350]!, width: 2),
             borderRadius: BorderRadius.circular(8.0),
           ),
@@ -368,19 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
             maxLines: 1,
           ),
         ),
-        onTap: () => showPicker(context, dataList, callback),
       ),
-      // TextField(
-      //   textAlign: TextAlign.center,
-      //   controller: controller,
-      //   decoration: InputDecoration(
-      //     // labelText: label,
-      //     hintText: label,
-      //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
-      //   ),
-      //   readOnly: true,
-      //   onTap: () => showPicker(context, controller, dataList),
-      // ),
     );
   }
 }

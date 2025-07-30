@@ -142,6 +142,32 @@ class Httpclient {
     }
   }
 
+  Future<(List<String>, List<String>)> filterData() {
+    return reloginWrapper(() async {
+      final uri = getUri('/filterdata');
+
+      final response = await http.get(
+        uri,
+        headers: {"Content-Type": "application/json"},
+      );
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        // final String? result = data["result"];
+        final List<String> cities = List<String>.from(data["cities"]);
+        final List<String> cuisines = List<String>.from(data["cuisines"]);
+        if (cities.isNotEmpty && cuisines.isNotEmpty) {
+          return (cities, cuisines);
+        } else {
+          throw Exception("No data found");
+        }
+      } else if (response.statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw handlerFailure(data);
+      }
+    });
+  }
+
   Exception handlerFailure(Map<String, dynamic> data) {
     final serverError = ServerError.fromJson(data);
     if (serverError != null) {
