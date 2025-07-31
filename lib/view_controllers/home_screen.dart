@@ -279,10 +279,21 @@ class _HomeScreenState extends State<HomeScreen> {
           spacing: 10,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [],
+          children: _createCityAndNameButtonList(),
         ),
       ],
     );
+  }
+
+  List<Widget> _createCityAndNameButtonList() {
+    return cityList.map((city) {
+      final encodedCity = httpClient.getCityURL(city);
+      return SizedBox(
+        width: 100,
+        height: 100,
+        child: Column(children: [Image.network(encodedCity), Text(city)]),
+      );
+    }).toList();
   }
 
   Widget _createTextButton(

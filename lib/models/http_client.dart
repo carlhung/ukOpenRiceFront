@@ -37,6 +37,10 @@ class Httpclient {
     return isInternal ? "192.168.1.9" : "carlhung.asuscomm.com";
   }
 
+  int get port {
+    return 8000;
+  }
+
   Uri getUri(String path, {Map<String, String> queryParameters = const {}}) {
     return Uri(
       scheme: 'https',
@@ -45,6 +49,13 @@ class Httpclient {
       path: path,
       queryParameters: queryParameters,
     );
+  }
+
+  String getCityURL(String city) {
+    String encodedString = Uri.encodeComponent(
+      city.toLowerCase(),
+    ); // String decodedString = Uri.decodeComponent(encodedString);
+    return 'https://$hostEndPoint:$port/static/city_icons/$encodedString.jpg';
   }
 
   Future<void> removeRestaurant(String name) async {
