@@ -261,11 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _createTextButton("Reset", () {
                 setState(() {
-                  city = '';
-                  cuisine = '';
-                  stars = '';
-                  isOpenNowSelected = false;
-                  // isFilterApplied = false;
+                  _reset();
                 });
               }, backgroundColor: Colors.white),
             ],
@@ -285,14 +281,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _reset() {
+    city = '';
+    cuisine = '';
+    stars = '';
+    isOpenNowSelected = false;
+  }
+
   List<Widget> _createCityAndNameButtonList() {
     return cityList.map((city) {
       final encodedCity = httpClient.getCityURL(city);
-      return SizedBox(
-        width: 100,
-        height: 100,
-        child: Column(children: [Image.network(encodedCity), Text(city)]),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 100,
+            height: 60,
+            child: FadeInImage.assetNetwork(
+              // width: 100,
+              // height: 60,
+              fit: BoxFit.cover,
+              placeholder: 'assets/city_placeholder.jpg',
+              image: encodedCity,
+              imageErrorBuilder: (context, error, stackTrace) =>
+                  Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
+            ),
+          ),
+
+          SizedBox(
+            height: 30,
+            width: 100,
+            child: Text(city, textAlign: TextAlign.center),
+          ),
+        ],
       );
+      // SizedBox(
+      //   width: 100,
+      //   height: 100,
+      //   child: Column(
+      //     children: [
+      //       FadeInImage.assetNetwork(
+      //         placeholder: 'assets/city_placeholder.jpg',
+      //         image: encodedCity,
+      //         imageErrorBuilder: (context, error, stackTrace) =>
+      //             Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
+      //       ),
+      //       Text(city),
+      //     ],
+      //   ),
+      // );
     }).toList();
   }
 
