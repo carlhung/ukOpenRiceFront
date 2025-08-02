@@ -247,18 +247,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? const Color.fromARGB(255, 192, 6, 3)
                     : const Color.fromARGB(255, 246, 243, 243),
               ),
-              _createTextButton(
-                "Apply Filter",
-                () {
-                  setState(() {
-                    // TODO: call API to get data
-                  });
-                },
-                backgroundColor: const Color.fromARGB(255, 192, 6, 3),
-                // backgroundColor: isFilterApplied
-                //     ? const Color.fromARGB(255, 192, 6, 3)
-                //     : const Color.fromARGB(255, 246, 243, 243),
-              ),
+              _createTextButton("Apply Filter", () {
+                setState(() {
+                  // TODO: call API to get data
+                });
+              }, backgroundColor: const Color.fromARGB(255, 192, 6, 3)),
               _createTextButton("Reset", () {
                 setState(() {
                   _reset();
@@ -267,16 +260,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        Text(
-          "Discover By Location",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        _sectionTitle("Discover By Location"),
         Row(
           spacing: 10,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: _createCityAndNameButtonList(),
         ),
+        _sectionTitle("Popular Cuisines"),
+        _createCuisineList(),
       ],
     );
   }
@@ -288,19 +280,18 @@ class _HomeScreenState extends State<HomeScreen> {
     isOpenNowSelected = false;
   }
 
-  List<Widget> _createCityAndNameButtonList() {
-    return cityList.map((city) {
-      final encodedCity = httpClient.getCityURL(city);
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+  Widget _cityButton(String city) {
+    final encodedCity = httpClient.getCityURL(city);
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      width: 100,
+      child: Column(
         children: [
-          SizedBox(
-            width: 100,
-            height: 60,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
             child: FadeInImage.assetNetwork(
-              // width: 100,
-              // height: 60,
+              width: 100,
+              height: 80,
               fit: BoxFit.cover,
               placeholder: 'assets/city_placeholder.jpg',
               image: encodedCity,
@@ -308,29 +299,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
             ),
           ),
-
-          SizedBox(
-            height: 30,
-            width: 100,
-            child: Text(city, textAlign: TextAlign.center),
-          ),
+          const SizedBox(height: 6),
+          Text(city, style: const TextStyle(fontSize: 14)),
         ],
-      );
-      // SizedBox(
-      //   width: 100,
-      //   height: 100,
-      //   child: Column(
-      //     children: [
-      //       FadeInImage.assetNetwork(
-      //         placeholder: 'assets/city_placeholder.jpg',
-      //         image: encodedCity,
-      //         imageErrorBuilder: (context, error, stackTrace) =>
-      //             Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
-      //       ),
-      //       Text(city),
-      //     ],
-      //   ),
-      // );
+      ),
+    );
+  }
+
+  List<Widget> _createCityAndNameButtonList() {
+    return cityList.map((city) {
+      return _cityButton(city);
     }).toList();
   }
 
@@ -339,25 +317,103 @@ class _HomeScreenState extends State<HomeScreen> {
     void Function() completionHandler, {
     Color backgroundColor = const Color.fromARGB(255, 246, 243, 243),
   }) {
+    // return Chip(
+    //   label: Text(label),
+    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    //   backgroundColor: Colors.grey.shade200,
+    // );
+
+    return GestureDetector(
+      onTap: completionHandler,
+      child: Chip(
+        label: Text(label),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        backgroundColor: backgroundColor,
+      ),
+    );
+  }
+
+  Widget _createCuisineList() {
     return SizedBox(
-      width: 100,
-      height: 40,
-      child: GestureDetector(
-        onTap: completionHandler,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            border: Border.all(color: Colors.grey[350]!, width: 2),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            maxLines: 1,
+      height: 80,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: cuisineList.length,
+        itemBuilder: (context, index) => Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.brown.shade100,
+                child: Text(
+                  cuisineList[index][0],
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(cuisineList[index], style: const TextStyle(fontSize: 12)),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _restaurantFeatureCard(String imagePath, String name) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'assets/restaurant.jpg',
+            height: 180,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Yang Sing',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Icon(Icons.star_half, color: Colors.amber, size: 16),
+                    SizedBox(width: 6),
+                    Text('4.3 (217)'),
+                  ],
+                ),
+                SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 16, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Text('Manchester', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 }
