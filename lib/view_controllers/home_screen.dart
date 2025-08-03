@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/l10n/app_localizations.dart';
@@ -261,12 +263,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         _sectionTitle("Discover By Location"),
-        Row(
-          spacing: 10,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _createCityAndNameButtonList(),
+        SizedBox(
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (BuildContext context, int index) {
+              return _cityButton(cityList[index]);
+            },
+            itemCount: cityList.length,
+            shrinkWrap: true,
+            // physics: const NeverScrollableScrollPhysics(),
+          ),
         ),
+        // Row(
+        //   spacing: 10,
+        //   mainAxisAlignment: MainAxisAlignment.start,
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: _createCityAndNameButtonList(),
+        // ),
         _sectionTitle("Popular Cuisines"),
         _createCuisineList(),
       ],
@@ -416,4 +430,12 @@ class _HomeScreenState extends State<HomeScreen> {
       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
+}
+
+T getRandomElement<T>(List<T> list) {
+  Random random = Random();
+
+  // Pick a random element
+  T randomItem = list[random.nextInt(list.length)];
+  return randomItem;
 }
