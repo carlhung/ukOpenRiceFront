@@ -79,6 +79,7 @@ final class ResturantInfo {
   final String priceRange;
   final String currencyCode;
   final String extraInfo;
+  final String timezone;
 
   ResturantInfo({
     required this.restuarantChineseName,
@@ -101,6 +102,7 @@ final class ResturantInfo {
     required this.delivery,
     required this.currencyCode,
     required this.selectedPayments,
+    required this.timezone,
   });
 
   Map<String, dynamic> toJson() {
@@ -126,6 +128,7 @@ final class ResturantInfo {
     addIfNotEmpty('priceRange', priceRange);
     addIfNotEmpty('currencyCode', currencyCode);
     addIfNotEmpty('extraInfo', extraInfo);
+    addIfNotEmpty('timezone', timezone);
 
     data['accessReservation'] = accessReservation;
     data['selectedPayments'] = selectedPayments

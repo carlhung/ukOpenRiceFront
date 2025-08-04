@@ -8,6 +8,7 @@ import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 import 'package:ukopenrice/view_controllers/open_hours_selector.dart';
 import 'package:ukopenrice/view_controllers/price_selector.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 
 class AddResturantInformation extends StatefulWidget {
   const AddResturantInformation({super.key});
@@ -66,7 +67,7 @@ final class _AddResturantInformationState
     super.dispose();
   }
 
-  ResturantInfo? _createResturantInfo() {
+  Future<ResturantInfo?> _createResturantInfo() async {
     if (restuarantEnglishNameCtrllor.text.isNotEmpty &&
         descriptionCtrllor.text.isNotEmpty &&
         addressCtrllor.text.isNotEmpty &&
@@ -91,6 +92,8 @@ final class _AddResturantInformationState
         cuisine = cuisineCtrllor.text;
       }
 
+      final timezone = await _getTimezone();
+
       return ResturantInfo(
         restuarantChineseName: restuarantChineseNameCtrllor.text.trim(),
         restuarantEnglishName: restuarantEnglishNameCtrllor.text.trim(),
@@ -112,6 +115,7 @@ final class _AddResturantInformationState
         priceRange: _currentFilter!.toSavableString.trim(),
         currencyCode: _currentFilter?.currency?.code ?? Currency.gbp.code,
         extraInfo: extraInfoCtrllor.text.trim(),
+        timezone: timezone,
       );
     } else {
       return null;
@@ -338,7 +342,7 @@ final class _AddResturantInformationState
               _createTextView(extraInfoCtrllor, "Extra Information"),
               ElevatedButton(
                 onPressed: () async {
-                  final info = _createResturantInfo();
+                  final info = await _createResturantInfo();
                   if (info != null) {
                     try {
                       await httpClient.submitRestaurantInformation(info);
@@ -355,10 +359,12 @@ final class _AddResturantInformationState
                       }
                     }
                   } else {
-                    showErrorOnSnackBar(
-                      context,
-                      "either missing required fields or wrong open hours",
-                    );
+                    if (context.mounted) {
+                      showErrorOnSnackBar(
+                        context,
+                        "either missing required fields or wrong open hours",
+                      );
+                    }
                   }
                 },
                 child: Text("Submit"),
@@ -368,6 +374,10 @@ final class _AddResturantInformationState
         ),
       ),
     );
+  }
+
+  Future<String> _getTimezone() async {
+    return await FlutterTimezone.getLocalTimezone();
   }
 }
 
