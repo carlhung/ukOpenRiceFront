@@ -283,7 +283,21 @@ class _HomeScreenState extends State<HomeScreen> {
         // ),
         _sectionTitle("Popular Cuisines"),
         _createCuisineList(),
+        _writeReviewButton(context),
       ],
+    );
+  }
+
+  Widget _writeReviewButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        if (_loginState == LoginState.loggedIn &&
+            httpClient.username.isNotEmpty &&
+            !httpClient.isAdmin) {
+          Navigator.pushNamed(context, Routes.writeReview);
+        }
+      },
+      child: const Text("write review"),
     );
   }
 

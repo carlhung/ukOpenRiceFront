@@ -216,6 +216,33 @@ class Httpclient {
     });
   }
 
+  Future<void> postReview(Map<String, dynamic> review) async {
+    await reloginWrapper(() async {
+      final uri = getUri("/post_review");
+      final body = jsonEncode(review);
+      final response = await http.post(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: body,
+      );
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final String? result = data["result"];
+        if (result == "successful") {
+        } else {
+          throw handlerFailure(data);
+        }
+      } else if (response.statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw handlerFailure(data);
+      }
+    });
+  }
+
   Future<void> uploadRestaurantImages(List<BodyPair> parameters) async {
     final boundary = generateBoundaryString();
     await reloginWrapper(() async {

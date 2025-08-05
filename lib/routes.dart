@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ukopenrice/view_controllers/add_restaurant_information.dart';
 import 'package:ukopenrice/view_controllers/remove_restaurant_info.dart';
 import 'package:ukopenrice/view_controllers/restaurant_input_mode.dart';
+import 'package:ukopenrice/view_controllers/reviews.dart';
 import 'package:ukopenrice/view_controllers/upload_photos.dart';
 import 'view_controllers/home_screen.dart';
 
@@ -12,6 +13,7 @@ class Routes {
   static const String addRestaurantInfoScreen = '/add_restaurant_information';
   static const String restaurantInputMode = '/restaurant_input_mode';
   static const String removeRestaurantInfo = '/remove_restaurant_info';
+  static const String writeReview = 'write_review';
 
   /// The map used to define routes to be provided in [MaterialApp]
   static final Map<String, WidgetBuilder> allRoutes = {
@@ -21,5 +23,6 @@ class Routes {
     uploadPhotoScreen: (context) => const UploadPhotos(),
     restaurantInputMode: (context) => const RestaurantInputMode(),
     removeRestaurantInfo: (context) => const RemoveRestaurantInfo(),
+    writeReview: (context) => const ReviewForm(),
   };
 }
