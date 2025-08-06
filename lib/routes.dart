@@ -20,7 +20,7 @@ class Routes {
     homeScreen: (context) =>
         const HomeScreen(), //const RestaurantHomePage(), //const HomeScreen(),
     addRestaurantInfoScreen: (context) => const AddResturantInformation(),
-    uploadPhotoScreen: (context) => const UploadPhotos(),
+    uploadPhotoScreen: (context) => const UploadPhotosVC(),
     restaurantInputMode: (context) => const RestaurantInputMode(),
     removeRestaurantInfo: (context) => const RemoveRestaurantInfo(),
     writeReview: (context) => const ReviewForm(),

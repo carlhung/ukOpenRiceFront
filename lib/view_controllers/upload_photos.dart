@@ -6,14 +6,14 @@ import 'dart:io';
 import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 
-class UploadPhotos extends StatefulWidget {
-  const UploadPhotos({super.key});
+class UploadPhotosVC extends StatefulWidget {
+  const UploadPhotosVC({super.key});
 
   @override
-  State<UploadPhotos> createState() => _UploadPhotosState();
+  State<UploadPhotosVC> createState() => _UploadPhotosVCState();
 }
 
-final class _UploadPhotosState extends State<UploadPhotos> {
+final class _UploadPhotosVCState extends State<UploadPhotosVC> {
   final httpClient = Httpclient.shared;
   final ImagePicker picker = ImagePicker();
   List<XFile> _selectedImages = [];
@@ -67,12 +67,8 @@ final class _UploadPhotosState extends State<UploadPhotos> {
                   onPressed: () async {
                     try {
                       await httpClient.uploadRestaurantImages([
+                        BodyPair(value: ImagesBodyValue(_selectedImages)),
                         BodyPair(
-                          key: "myImage",
-                          value: ImagesBodyValue(_selectedImages),
-                        ),
-                        BodyPair(
-                          key: "restaurant info",
                           value: EncodableBodyValue(
                             RestaurantName(name: restaurantEnglishName),
                           ),

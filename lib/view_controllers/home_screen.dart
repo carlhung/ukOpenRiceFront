@@ -292,8 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ElevatedButton(
       onPressed: () {
         if (_loginState == LoginState.loggedIn &&
-            httpClient.username.isNotEmpty &&
-            !httpClient.isAdmin) {
+            httpClient.username.isNotEmpty) {
           Navigator.pushNamed(context, Routes.writeReview);
         }
       },

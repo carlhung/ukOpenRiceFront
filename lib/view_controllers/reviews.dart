@@ -1,7 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/models/http_client.dart';
+import 'dart:io';
 
 class ReviewForm extends StatefulWidget {
   const ReviewForm({super.key});
@@ -14,7 +15,8 @@ class ReviewFormState extends State<ReviewForm> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _formData = {};
   final httpClient = Httpclient.shared;
-  // void Function(Map<String, dynamic>) onSubmit = (_) {};
+  final overallRating = "overall_rating";
+  List<XFile> _selectedImages = [];
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +28,16 @@ class ReviewFormState extends State<ReviewForm> {
           child: Column(
             children: [
               _buildTextField('restaurant_name', 'Restaurant Name', true),
-              _buildTextField('user', 'User Name', true),
+              _startRatingRow(overallRating, 'Overall Rating'),
+              _startRatingRow('taste', 'Taste Rating'),
+              _startRatingRow('decor', 'Decor Rating'),
+              _startRatingRow('service', 'Service Rating'),
+              _startRatingRow('hygiene', 'Hygiene Rating'),
+              _startRatingRow('value', 'Value Rating'),
+
               _buildTextField('title', 'Title', false),
               _buildTextField('review', 'Review', false, maxLines: 5),
-              _buildNumberField('overall_rating', 'Overall Rating (1-5)', true),
-              _buildNumberField('taste', 'Taste Rating (1-5)', false),
-              _buildNumberField('decor', 'Decor Rating (1-5)', false),
-              _buildNumberField('service', 'Service Rating (1-5)', false),
-              _buildNumberField('hygiene', 'Hygiene Rating (1-5)', false),
-              _buildNumberField('value', 'Value Rating (1-5)', false),
+
               _buildDatePicker('date_of_visit', 'Date of Visit'),
               _buildNumberField(
                 'waiting_time',
@@ -52,13 +55,36 @@ class ReviewFormState extends State<ReviewForm> {
                 'Recommended Dishes',
                 false,
               ),
+              SizedBox(
+                height: 300,
+                child: UploadImageComponent(
+                  selectedImages: _selectedImages,
+                  onChanged: (selectedImages) {
+                    setState(() {
+                      _selectedImages = selectedImages;
+                    });
+                  },
+                ),
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    // onSubmit(_formData);
-                    httpClient.postReview(_formData);
+                    if (httpClient.username.isNotEmpty &&
+                        _formData[overallRating] != null) {
+                      _formData["user"] = httpClient.username;
+                      final wrappedMap = MapEncodable(value: _formData);
+                      httpClient.postReview([
+                        BodyPair(value: EncodableBodyValue(wrappedMap)),
+                        BodyPair(value: ImagesBodyValue(_selectedImages)),
+                      ]);
+                    } else {
+                      showErrorOnSnackBar(
+                        context,
+                        '"Overall rating" can\'t be empty.',
+                      );
+                    }
                   }
                 },
                 child: const Text('Submit Review'),
@@ -67,6 +93,23 @@ class ReviewFormState extends State<ReviewForm> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _startRatingRow(String key, String title) {
+    final int? value = _formData[key];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(width: 100, child: Text(title)),
+        StarRating(
+          initialRating: value ?? 0,
+          onRatingChanged: (value) {
+            _formData[key] = value;
+          },
+        ),
+      ],
     );
   }
 
@@ -161,7 +204,7 @@ class ReviewDetails extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildField('Restaurant Name', review['restaurant_name']),
-          _buildField('User', review['user']),
+          // _buildField('User', review['user']),
           _buildField('English Title', review['english_title']),
           _buildField('Chinese Title', review['chinese_title']),
           _buildField('English Review', review['english_review']),
@@ -207,5 +250,162 @@ class ReviewDetails extends StatelessWidget {
               ),
             ),
           );
+  }
+}
+
+class StarRating extends StatefulWidget {
+  final int maxStars;
+  final int initialRating;
+  final ValueChanged<int> onRatingChanged;
+
+  const StarRating({
+    super.key,
+    this.maxStars = 5,
+    this.initialRating = 0,
+    required this.onRatingChanged,
+  });
+
+  @override
+  State<StarRating> createState() => _StarRatingState();
+}
+
+class _StarRatingState extends State<StarRating> {
+  late int _currentRating;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRating = widget.initialRating;
+  }
+
+  void _updateRating(int rating) {
+    setState(() {
+      _currentRating = rating;
+    });
+    widget.onRatingChanged(_currentRating);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(widget.maxStars, (index) {
+        final isSelected = index < _currentRating;
+        return IconButton(
+          icon: Icon(
+            isSelected ? Icons.star : Icons.star_border,
+            color: Colors.amber,
+          ),
+          onPressed: () {
+            if (index == 0 && _currentRating == 1) {
+              _updateRating(0);
+            } else {
+              _updateRating(index + 1);
+            }
+          },
+          splashRadius: 20,
+        );
+      }),
+      // ..insert(
+      //   0,
+      //   IconButton(
+      //     // For "0 stars" reset
+      //     icon: const Icon(Icons.clear, color: Colors.grey),
+      //     onPressed: () => _updateRating(0),
+      //     splashRadius: 20,
+      //   ),
+      // ),
+    );
+  }
+}
+
+class UploadImageComponent extends StatefulWidget {
+  final List<XFile> selectedImages;
+  final void Function(List<XFile>) onChanged;
+
+  const UploadImageComponent({
+    super.key,
+    required this.selectedImages,
+    required this.onChanged,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _UploadImageComponentState();
+}
+
+class _UploadImageComponentState extends State<UploadImageComponent> {
+  final ImagePicker picker = ImagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: GridView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: widget.selectedImages.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, // Number of columns
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
+              childAspectRatio: 1, // Makes cells square
+            ),
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Image.file(
+                  File(widget.selectedImages[index].path),
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+          ),
+        ),
+        Row(
+          spacing: 20,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final selectedImage = await picker.pickMultiImage();
+                widget.onChanged(selectedImage);
+              },
+              child: Text("Select Image"),
+            ),
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     try {
+            //       await httpClient.uploadRestaurantImages([
+            //         BodyPair(
+            //           key: "myImage",
+            //           value: ImagesBodyValue(_selectedImages),
+            //         ),
+            //         BodyPair(
+            //           key: "restaurant info",
+            //           value: EncodableBodyValue(
+            //             RestaurantName(name: restaurantEnglishName),
+            //           ),
+            //         ),
+            //       ]);
+            //       if (context.mounted) {
+            //         Navigator.popUntil(
+            //           context,
+            //           ModalRoute.withName(Routes.restaurantInputMode),
+            //         );
+            //       }
+            //     } catch (e) {
+            //       if (context.mounted) {
+            //         showErrorOnSnackBar(context, e);
+            //       }
+            //     }
+            //   },
+            //   child: Text("Upload"),
+            // ),
+          ],
+        ),
+      ],
+    );
   }
 }

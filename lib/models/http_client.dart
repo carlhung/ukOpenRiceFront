@@ -216,37 +216,19 @@ class Httpclient {
     });
   }
 
-  Future<void> postReview(Map<String, dynamic> review) async {
-    await reloginWrapper(() async {
-      final uri = getUri("/post_review");
-      final body = jsonEncode(review);
-      final response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-        body: body,
-      );
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        final String? result = data["result"];
-        if (result == "successful") {
-        } else {
-          throw handlerFailure(data);
-        }
-      } else if (response.statusCode == 401) {
-        throw Unauthorized401Exception();
-      } else {
-        throw handlerFailure(data);
-      }
-    });
+  Future<void> postReview(List<BodyPair> parameters) async {
+    final uri = getUri("/post_review");
+    await _postImagesAndJson(uri, parameters);
   }
 
   Future<void> uploadRestaurantImages(List<BodyPair> parameters) async {
+    final uri = getUri('/uploadrestaurantimages');
+    await _postImagesAndJson(uri, parameters);
+  }
+
+  Future<void> _postImagesAndJson(Uri uri, List<BodyPair> parameters) async {
     final boundary = generateBoundaryString();
     await reloginWrapper(() async {
-      final uri = getUri('/uploadrestaurantimages');
       final body = await createBodyWithParameters(boundary, parameters);
       if (body != null) {
         final response = await http.post(
@@ -428,10 +410,9 @@ abstract class Encodable {
 class BodyValue {}
 
 class BodyPair {
-  final String key;
   final BodyValue value;
 
-  BodyPair({required this.key, required this.value});
+  BodyPair({required this.value});
 }
 
 final class ImagesBodyValue extends BodyValue {
@@ -442,4 +423,15 @@ final class ImagesBodyValue extends BodyValue {
 class EncodableBodyValue<T extends Encodable> extends BodyValue {
   final T encodable;
   EncodableBodyValue(this.encodable);
+}
+
+class MapEncodable extends Encodable {
+  Map<String, dynamic> value;
+
+  MapEncodable({required this.value});
+
+  @override
+  Map<String, dynamic> toJson() {
+    return value;
+  }
 }
