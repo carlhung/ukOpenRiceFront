@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/models/http_client.dart';
 import 'dart:io';
+import 'package:ukopenrice/routes.dart';
 
 class ReviewForm extends StatefulWidget {
   const ReviewForm({super.key});
@@ -21,6 +22,7 @@ class ReviewFormState extends State<ReviewForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text("Write Review")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -28,15 +30,15 @@ class ReviewFormState extends State<ReviewForm> {
           child: Column(
             children: [
               _buildTextField('restaurant_name', 'Restaurant Name', true),
-              _startRatingRow(overallRating, 'Overall Rating'),
+              _startRatingRow(overallRating, 'Overall Rating', required: true),
               _startRatingRow('taste', 'Taste Rating'),
               _startRatingRow('decor', 'Decor Rating'),
               _startRatingRow('service', 'Service Rating'),
               _startRatingRow('hygiene', 'Hygiene Rating'),
               _startRatingRow('value', 'Value Rating'),
 
-              _buildTextField('title', 'Title', false),
-              _buildTextField('review', 'Review', false, maxLines: 5),
+              _buildTextField('title', 'Title', true),
+              _buildTextField('review', 'Review', true, maxLines: 5),
 
               _buildDatePicker('date_of_visit', 'Date of Visit'),
               _buildNumberField(
@@ -55,8 +57,10 @@ class ReviewFormState extends State<ReviewForm> {
                 'Recommended Dishes',
                 false,
               ),
+              if (_selectedImages.isEmpty) SizedBox(height: 50),
+
               SizedBox(
-                height: 300,
+                height: _selectedImages.isEmpty ? 50 : 300,
                 child: UploadImageComponent(
                   selectedImages: _selectedImages,
                   onChanged: (selectedImages) {
@@ -68,17 +72,23 @@ class ReviewFormState extends State<ReviewForm> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     if (httpClient.username.isNotEmpty &&
                         _formData[overallRating] != null) {
                       _formData["user"] = httpClient.username;
                       final wrappedMap = MapEncodable(value: _formData);
-                      httpClient.postReview([
+                      await httpClient.postReview([
                         BodyPair(value: EncodableBodyValue(wrappedMap)),
                         BodyPair(value: ImagesBodyValue(_selectedImages)),
                       ]);
+                      if (context.mounted) {
+                        Navigator.popUntil(
+                          context,
+                          ModalRoute.withName(Routes.homeScreen),
+                        );
+                      }
                     } else {
                       showErrorOnSnackBar(
                         context,
@@ -96,19 +106,25 @@ class ReviewFormState extends State<ReviewForm> {
     );
   }
 
-  Widget _startRatingRow(String key, String title) {
+  Widget _startRatingRow(String key, String title, {bool required = false}) {
     final int? value = _formData[key];
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         SizedBox(width: 100, child: Text(title)),
         StarRating(
           initialRating: value ?? 0,
           onRatingChanged: (value) {
-            _formData[key] = value;
+            setState(() {
+              _formData[key] = value;
+            });
           },
         ),
+        if (required && _formData[key] == null) ...[
+          SizedBox(width: 10),
+          Text("Required"),
+        ],
       ],
     );
   }
@@ -173,15 +189,16 @@ class ReviewFormState extends State<ReviewForm> {
         IconButton(
           icon: const Icon(Icons.calendar_today),
           onPressed: () async {
+            final now = DateTime.now();
             final picked = await showDatePicker(
               context: context,
-              initialDate: DateTime.now(),
+              initialDate: now,
               firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
+              lastDate: now,
             );
             if (picked != null) {
               setState(() {
-                _formData[key] = picked.toIso8601String();
+                _formData[key] = picked.toUtc().toIso8601String();
               });
             }
           },
@@ -291,19 +308,23 @@ class _StarRatingState extends State<StarRating> {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(widget.maxStars, (index) {
         final isSelected = index < _currentRating;
-        return IconButton(
-          icon: Icon(
-            isSelected ? Icons.star : Icons.star_border,
-            color: Colors.amber,
+        return SizedBox(
+          width: 30,
+          height: 35,
+          child: IconButton(
+            icon: Icon(
+              isSelected ? Icons.star : Icons.star_border,
+              color: Colors.amber,
+            ),
+            onPressed: () {
+              if (index == 0 && _currentRating == 1) {
+                _updateRating(0);
+              } else {
+                _updateRating(index + 1);
+              }
+            },
+            splashRadius: 20,
           ),
-          onPressed: () {
-            if (index == 0 && _currentRating == 1) {
-              _updateRating(0);
-            } else {
-              _updateRating(index + 1);
-            }
-          },
-          splashRadius: 20,
         );
       }),
       // ..insert(
@@ -340,29 +361,30 @@ class _UploadImageComponentState extends State<UploadImageComponent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Expanded(
-          child: GridView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: widget.selectedImages.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, // Number of columns
-              crossAxisSpacing: 2,
-              mainAxisSpacing: 2,
-              childAspectRatio: 1, // Makes cells square
+        if (widget.selectedImages.isNotEmpty)
+          Expanded(
+            child: GridView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: widget.selectedImages.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3, // Number of columns
+                crossAxisSpacing: 2,
+                mainAxisSpacing: 2,
+                childAspectRatio: 1, // Makes cells square
+              ),
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Image.file(
+                    File(widget.selectedImages[index].path),
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
             ),
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Image.file(
-                  File(widget.selectedImages[index].path),
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
-              );
-            },
           ),
-        ),
         Row(
           spacing: 20,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -390,7 +412,7 @@ class _UploadImageComponentState extends State<UploadImageComponent> {
             //         ),
             //       ]);
             //       if (context.mounted) {
-            //         Navigator.popUntil(
+            //         Navigator.Until(
             //           context,
             //           ModalRoute.withName(Routes.restaurantInputMode),
             //         );

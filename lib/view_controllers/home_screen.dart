@@ -126,11 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // setState(() {
-                //   _loginState = LoginState.loggingIn;
-                // });
+                setState(() {
+                  _loginState = LoginState.loggingIn;
+                });
                 // Navigator.pushNamed(context, Routes.logInScreen);
-                await updateData(LoginState.loggingIn);
+                // await updateData(LoginState.loggingIn);
               },
               child: const Text("Log In"),
             ),
