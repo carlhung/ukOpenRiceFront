@@ -35,22 +35,46 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    httpClient
-        .filterData()
-        .then((data) {
-          if (context.mounted) {
-            setState(() {
-              cityList = data.$1;
-              cuisineList = data.$2;
-              // starList = data['stars'] as List<String>;
-            });
-          }
-        })
-        .catchError((e) {
-          if (context.mounted) {
-            showErrorOnSnackBar(context, e);
-          }
-        });
+    // httpClient
+    //     .filterData()
+    //     .then((data) {
+    //       if (context.mounted) {
+    //         setState(() {
+    //           cityList = data.$1;
+    //           cuisineList = data.$2;
+    //           // starList = data['stars'] as List<String>;
+    //         });
+    //       }
+    //     })
+    //     .catchError((e) {
+    //       if (context.mounted) {
+    //         showErrorOnSnackBar(context, e);
+    //       }
+    //     });
+  }
+
+  Future<void> updateData(LoginState state) async {
+    final data = await httpClient.filterData();
+    setState(() {
+      cityList = data.$1;
+      cuisineList = data.$2;
+      _loginState = state;
+      // starList = data['stars'] as List<String>;
+    });
+    // .then((data) {
+    //   if (context.mounted) {
+    //     setState(() {
+    //       cityList = data.$1;
+    //       cuisineList = data.$2;
+    //       // starList = data['stars'] as List<String>;
+    //     });
+    //   }
+    // })
+    // .catchError((e) {
+    //   if (context.mounted) {
+    //     showErrorOnSnackBar(context, e);
+    //   }
+    // });
   }
 
   @override
@@ -91,19 +115,22 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _loginState = LoginState.skipped;
-                });
+              onPressed: () async {
+                // updateData();
+                // setState(() {
+                //   _loginState = LoginState.skipped;
+                // });
+                await updateData(LoginState.skipped);
               },
               child: const Text("Skip Login"),
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _loginState = LoginState.loggingIn;
-                });
+              onPressed: () async {
+                // setState(() {
+                //   _loginState = LoginState.loggingIn;
+                // });
                 // Navigator.pushNamed(context, Routes.logInScreen);
+                await updateData(LoginState.loggingIn);
               },
               child: const Text("Log In"),
             ),
@@ -164,10 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
               try {
                 await httpClient.logIn(username, password);
                 if (context.mounted) {
-                  setState(() {
-                    _loginState = LoginState.loggedIn;
-                  });
-                  if (httpClient.isAdmin) {
+                  // setState(() {
+                  //   _loginState = LoginState.loggedIn;
+                  // });
+                  await updateData(LoginState.loggedIn);
+                  if (context.mounted && httpClient.isAdmin) {
                     Navigator.pushNamed(context, Routes.restaurantInputMode);
                   }
                 }
@@ -283,7 +311,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // ),
         _sectionTitle("Popular Cuisines"),
         _createCuisineList(),
-        _writeReviewButton(context),
+        if (_loginState == LoginState.loggedIn &&
+            httpClient.username.isNotEmpty)
+          _writeReviewButton(context),
       ],
     );
   }
@@ -294,6 +324,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_loginState == LoginState.loggedIn &&
             httpClient.username.isNotEmpty) {
           Navigator.pushNamed(context, Routes.writeReview);
+        } else {
+          showErrorOnSnackBar(context, "Please LogIn");
         }
       },
       child: const Text("write review"),
