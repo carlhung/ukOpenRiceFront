@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 final class Payment {
   final String name;
 
@@ -139,4 +141,87 @@ final class ResturantInfo {
 
     return data;
   }
+
+  factory ResturantInfo.fromJson(Map<String, dynamic> json) {
+    return ResturantInfo(
+      restuarantEnglishName: json['english_name'] ?? "",
+      restuarantChineseName: json['chinese_name'] ?? "",
+      cuisine: json['cuisine'] ?? "",
+      description: json['description'] ?? "",
+      address: json['address'] ?? "",
+      city: json['city'] ?? "",
+      phone: json['phone'] ?? "",
+      map: json['map'] ?? "",
+      web: json['web'] ?? "",
+      facebook: json['facebook'] ?? "",
+      instagram: json['instagram'] ?? "",
+      email: json['email'] ?? "",
+      accessReservation:
+          json['access_reservation'] == 1 || json['access_reservation'] == true,
+      selectedPayments: json['selected_payments'],
+      takeaway: json['takeaway'] == 1 || json['takeaway'] == true,
+      delivery: json['delivery'] == 1 || json['delivery'] == true,
+      priceRange: json['price_range'] ?? "",
+      currencyCode: json['currency_code'] ?? "",
+      extraInfo: json['extraInfo'] ?? "",
+      openingHours: '',
+      timezone: '',
+    );
+  }
 }
+
+class OpeningHour {
+  final String dayOfWeek;
+  final String openTime;
+  final String closeTime;
+  final bool isUtcFormat;
+  final String timezone;
+
+  OpeningHour({
+    required this.dayOfWeek,
+    required this.openTime,
+    required this.closeTime,
+    required this.isUtcFormat,
+    required this.timezone,
+  });
+
+  factory OpeningHour.fromJson(Map<String, dynamic> json) {
+    return OpeningHour(
+      dayOfWeek: json['day_of_week'],
+      openTime: json['open_time'],
+      closeTime: json['close_time'],
+      isUtcFormat: json['is_utc_format'],
+      timezone: json['timezone'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'day_of_week': dayOfWeek,
+      'open_time': openTime,
+      'close_time': closeTime,
+      'is_utc_format': isUtcFormat,
+      'timezone': timezone,
+    };
+  }
+}
+
+List<OpeningHour> decodeOpeningHours(String jsonString) {
+  final List<dynamic> decoded = json.decode(jsonString);
+  return decoded.map((item) => OpeningHour.fromJson(item)).toList();
+}
+
+List<OpeningHour> openingHoursFromList(List<dynamic> jsonList) {
+  return jsonList.map((item) => OpeningHour.fromJson(item)).toList();
+}
+
+// String jsonString = '''[
+//   {"day_of_week": "monday", "open_time": "9:00:00", "close_time": "17:00:00", "is_utc_format": false, "timezone": "Europe/London"},
+//   {"day_of_week": "wednesday", "open_time": "9:00:00", "close_time": "17:00:00", "is_utc_format": false, "timezone": "Europe/London"}
+// ]''';
+
+// List<OpeningHour> hours = decodeOpeningHours(jsonString);
+
+// for (var hour in hours) {
+//   print('${hour.dayOfWeek}: ${hour.openTime} - ${hour.closeTime}');
+// }
