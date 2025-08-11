@@ -172,7 +172,7 @@ final class ResturantInfo {
       extraInfo: json['extraInfo'] ?? "",
       openingHours: '',
       timezone: '',
-      returnedOpeningHours: (json['openingHours'] as List)
+      returnedOpeningHours: (json['returnOpeningHours'] as List)
           .map((hour) => OpeningHour.fromJson(hour as Map<String, dynamic>))
           .toList(),
       originalImages: List<String>.from(json['original_images'] as List),
