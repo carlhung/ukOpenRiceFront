@@ -226,6 +226,22 @@ class Httpclient {
     await _postImagesAndJson(uri, parameters);
   }
 
+  Future<ResturantInfo> getRestaurantDetails(String name) async {
+    final uri = getUri(
+      '/get_restaurant_info',
+      queryParameters: {"restaurantName": name},
+    );
+    final response = await http.get(uri);
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return ResturantInfo.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Unauthorized401Exception();
+    } else {
+      throw handlerFailure(data);
+    }
+  }
+
   Future<void> _postImagesAndJson(Uri uri, List<BodyPair> parameters) async {
     final boundary = generateBoundaryString();
     await reloginWrapper(() async {

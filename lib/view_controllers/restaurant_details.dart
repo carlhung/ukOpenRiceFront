@@ -122,6 +122,35 @@ class RestaurantDetails extends StatelessWidget {
     );
   }
 
+  Widget _buildOpeningHours() {
+    if (restaurant.openingHours.isEmpty) return SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Opening Hours:", style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          ...restaurant.returnedOpeningHours.map((hour) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 2),
+              child: Text(
+                "${_capitalizeFirst(hour.dayOfWeek)}: ${hour.openTime} - ${hour.closeTime}",
+                style: TextStyle(fontSize: 14),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -160,6 +189,11 @@ class RestaurantDetails extends StatelessWidget {
           ),
           _buildField("Takeaway", restaurant.takeaway ? "Yes" : "No"),
           _buildField("Delivery", restaurant.delivery ? "Yes" : "No"),
+
+          const SizedBox(height: 12),
+
+          // Opening Hours Section
+          _buildOpeningHours(),
 
           const SizedBox(height: 12),
 

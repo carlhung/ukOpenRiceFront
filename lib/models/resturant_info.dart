@@ -82,6 +82,9 @@ final class ResturantInfo {
   final String currencyCode;
   final String extraInfo;
   final String timezone;
+  List<OpeningHour> returnedOpeningHours;
+  List<String> originalImages;
+  List<String> thumbnilImages;
 
   ResturantInfo({
     required this.restuarantChineseName,
@@ -105,6 +108,9 @@ final class ResturantInfo {
     required this.currencyCode,
     required this.selectedPayments,
     required this.timezone,
+    this.returnedOpeningHours = const [],
+    this.originalImages = const [],
+    this.thumbnilImages = const [],
   });
 
   Map<String, dynamic> toJson() {
@@ -166,6 +172,11 @@ final class ResturantInfo {
       extraInfo: json['extraInfo'] ?? "",
       openingHours: '',
       timezone: '',
+      returnedOpeningHours: (json['openingHours'] as List)
+          .map((hour) => OpeningHour.fromJson(hour as Map<String, dynamic>))
+          .toList(),
+      originalImages: List<String>.from(json['original_images'] as List),
+      thumbnilImages: List<String>.from(json['thumbnil_images'] as List),
     );
   }
 }
