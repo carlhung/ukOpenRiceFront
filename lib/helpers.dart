@@ -10,3 +10,12 @@ void showErrorOnSnackBar(BuildContext context, Object error) {
     SnackBar(duration: Duration(seconds: 5), content: Text(error.toString())),
   );
 }
+
+extension StringCasingExtension on String {
+  String get toCapitalized =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String get toTitleCase => replaceAll(
+    RegExp(' +'),
+    ' ',
+  ).split(' ').map((str) => str.toCapitalized).join(' ');
+}

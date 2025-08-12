@@ -164,8 +164,12 @@ class Httpclient {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         // final String? result = data["result"];
-        final List<String> cities = List<String>.from(data["cities"]);
-        final List<String> cuisines = List<String>.from(data["cuisines"]);
+        final List<String> cities = List<String>.from(
+          data["cities"],
+        ).map((s) => s.toTitleCase).toList();
+        final List<String> cuisines = List<String>.from(
+          data["cuisines"],
+        ).map((s) => s.toTitleCase).toList();
         if (cities.isNotEmpty && cuisines.isNotEmpty) {
           return (cities, cuisines);
         } else {
