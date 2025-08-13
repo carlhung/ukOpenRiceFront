@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   var cuisine = '';
   var city = '';
   int? starsIndex;
+  String priceRange = '';
   var isOpenNowSelected = false;
   final httpClient = Httpclient.shared;
   // bool isFilterApplied = false;
@@ -281,6 +282,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               ),
+              _createTextButton(priceRange.isEmpty ? "Price" : priceRange, () {
+                _showPicker(
+                  context,
+                  createPriceRangeList().map((str) => '£$str').toList(),
+                  (str) {
+                    setState(() {
+                      priceRange = str;
+                    });
+                  },
+                );
+              }),
               _createTextButton(
                 "Open Now",
                 () {
@@ -334,7 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleSearch() async {
     int? rating;
     if (starsIndex != null) rating = starsIndex! + 1;
-    final filter = SearchFilter(rating, city, cuisine, getUTC());
+    final filter = SearchFilter(
+      rating,
+      city,
+      cuisine,
+      isOpenNowSelected ? getUTC() : '',
+      priceRange.replaceAll('£', ''),
+    );
     final results = await httpClient.search(filter);
     setState(() {
       searchResults = results;
@@ -365,6 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
     cuisine = '';
     starsIndex = null;
     isOpenNowSelected = false;
+    searchResults = [];
   }
 
   Widget _cityButton(String city) {
@@ -511,10 +530,17 @@ class SearchFilter {
   int? rating;
   String city;
   String cuisine;
+  String prceRange;
   // Iso8601
   String timeInUTC;
 
-  SearchFilter(this.rating, this.city, this.cuisine, this.timeInUTC);
+  SearchFilter(
+    this.rating,
+    this.city,
+    this.cuisine,
+    this.timeInUTC,
+    this.prceRange,
+  );
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
@@ -526,7 +552,8 @@ class SearchFilter {
 
     addIfNotEmpty('city', city);
     addIfNotEmpty('cuisine', cuisine);
-    addIfNotEmpty("timeInUTC", timeInUTC);
+    addIfNotEmpty("time_in_utc", timeInUTC);
+    addIfNotEmpty('price_range', prceRange);
     if (rating != null) data["rating"] = rating;
     return data;
   }
@@ -537,12 +564,28 @@ class SearchResult {
   final String city;
   final String cuisine;
   final String priceRange;
-  final int avgRating;
-  SearchResult(
-    this.name,
-    this.city,
-    this.cuisine,
-    this.priceRange,
-    this.avgRating,
-  );
+  final double? avgRating;
+  final int totalReviews;
+
+  SearchResult({
+    required this.name,
+    required this.city,
+    required this.cuisine,
+    required this.priceRange,
+    required this.avgRating,
+    required this.totalReviews,
+  });
+
+  factory SearchResult.fromJson(Map<String, dynamic> json) {
+    return SearchResult(
+      name: json['name'],
+      city: json['city'],
+      cuisine: json['cuisine'],
+      priceRange: json['price_range'],
+      avgRating: json['avg_rating'] != null
+          ? (json['avg_rating'] as num).toDouble()
+          : null,
+      totalReviews: json['total_reviews'],
+    );
+  }
 }

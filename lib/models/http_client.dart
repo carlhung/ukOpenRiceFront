@@ -232,8 +232,29 @@ class Httpclient {
   }
 
   Future<List<SearchResult>> search(SearchFilter filter) async {
-    // TODO
-    return [];
+    final uri = getUri('/search_restaurants');
+    final body = jsonEncode(filter.toJson());
+    return await reloginWrapper(() async {
+      final response = await http.post(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: body,
+      );
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final results = (data["result"] as List)
+            .map((e) => SearchResult.fromJson(e))
+            .toList();
+        return results;
+      } else if (response.statusCode == 401) {
+        throw Unauthorized401Exception();
+      } else {
+        throw handlerFailure(data);
+      }
+    });
   }
 
   Future<ResturantInfo> getRestaurantDetails(String name) async {
