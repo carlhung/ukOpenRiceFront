@@ -9,21 +9,37 @@ final class RestaurantInputMode extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text("Edit Mode")),
       body: Center(
-        child: Row(
-          spacing: 20,
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 20,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.removeRestaurantInfo);
-              },
-              child: Text("Remove"),
+            Row(
+              spacing: 20,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, Routes.removeRestaurantInfo);
+                  },
+                  child: Text("Remove"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      Routes.addRestaurantInfoScreen,
+                    );
+                  },
+                  child: Text("Add"),
+                ),
+              ],
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, Routes.addRestaurantInfoScreen);
+                // Navigator.pushNamed(context, Routes.addRestaurantInfoScreen);
               },
-              child: Text("Add"),
+              child: Text("upload restuarant image"),
             ),
           ],
         ),

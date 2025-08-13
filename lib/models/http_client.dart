@@ -171,11 +171,12 @@ class Httpclient {
         final List<String> cuisines = List<String>.from(
           data["cuisines"],
         ).map((s) => s.toTitleCase).toList();
-        if (cities.isNotEmpty && cuisines.isNotEmpty) {
-          return (cities, cuisines);
-        } else {
-          throw Exception("No data found");
-        }
+        return (cities, cuisines);
+        // if (cities.isNotEmpty && cuisines.isNotEmpty) {
+        //   return (cities, cuisines);
+        // } else {
+        //   throw Exception("No data found");
+        // }
       } else if (response.statusCode == 401) {
         throw Unauthorized401Exception();
       } else {

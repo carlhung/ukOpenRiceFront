@@ -315,32 +315,41 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        _sectionTitle("Discover By Location"),
-        SizedBox(
-          height: 150,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (BuildContext context, int index) {
-              return _cityButton(cityList[index]);
-            },
-            itemCount: cityList.length,
-            shrinkWrap: true,
-            // physics: const NeverScrollableScrollPhysics(),
-          ),
-        ),
-        // Row(
-        //   spacing: 10,
-        //   mainAxisAlignment: MainAxisAlignment.start,
-        //   crossAxisAlignment: CrossAxisAlignment.start,
-        //   children: _createCityAndNameButtonList(),
-        // ),
-        _sectionTitle("Popular Cuisines"),
-        _createCuisineList(),
-        if (_loginState == LoginState.loggedIn &&
-            httpClient.username.isNotEmpty)
-          _writeReviewButton(context),
+        //   ...(searchResults.isEmpty
+        // ? _buildHomeScreenBody()
+        // : _buildSearchResults()),
+        // if (searchResults.isEmpty) ..._buildHomeScreenBody(),
+        ...(searchResults.isEmpty ? _buildHomeScreenBody() : [_buildResults()]),
       ],
     );
+  }
+
+  List<Widget> _buildHomeScreenBody() {
+    return [
+      _sectionTitle("Discover By Location"),
+      SizedBox(
+        height: 150,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (BuildContext context, int index) {
+            return _cityButton(cityList[index]);
+          },
+          itemCount: cityList.length,
+          shrinkWrap: true,
+          // physics: const NeverScrollableScrollPhysics(),
+        ),
+      ),
+      // Row(
+      //   spacing: 10,
+      //   mainAxisAlignment: MainAxisAlignment.start,
+      //   crossAxisAlignment: CrossAxisAlignment.start,
+      //   children: _createCityAndNameButtonList(),
+      // ),
+      _sectionTitle("Popular Cuisines"),
+      _createCuisineList(),
+      if (_loginState == LoginState.loggedIn && httpClient.username.isNotEmpty)
+        _writeReviewButton(context),
+    ];
   }
 
   Future<void> _handleSearch() async {
@@ -355,7 +364,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final results = await httpClient.search(filter);
     setState(() {
-      searchResults = results;
+      if (results.isNotEmpty) {
+        searchResults = results;
+      } else {
+        _reset();
+      }
     });
   }
 
@@ -381,6 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _reset() {
     city = '';
     cuisine = '';
+    priceRange = '';
     starsIndex = null;
     isOpenNowSelected = false;
     searchResults = [];
@@ -515,6 +529,89 @@ class _HomeScreenState extends State<HomeScreen> {
       title,
       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
+  }
+
+  Widget _buildResults() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: searchResults.length,
+        itemBuilder: (context, index) =>
+            _buildSearchResultRow(searchResults[index]),
+      ),
+    );
+  }
+
+  Widget _buildSearchResultRow(SearchResult result) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        leading: _buildThumbnailWidget(result.name),
+        title: Text(
+          result.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${result.city} • ${result.cuisine}'),
+            if (result.avgRating != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  _buildStarRating(result.avgRating!),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${result.avgRating!.toStringAsFixed(1)} (${result.totalReviews})',
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+        trailing: result.priceRange.isNotEmpty
+            ? Text(
+                '£${result.priceRange}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              )
+            : null,
+        onTap: () {
+          // Handle restaurant detail navigation
+        },
+      ),
+    );
+  }
+
+  Widget _buildThumbnailWidget(String restaurantName) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 60,
+        height: 60,
+        color: Colors.grey[300],
+        child: Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
+      ),
+    );
+  }
+
+  Widget _buildStarRating(double rating) {
+    List<Widget> stars = [];
+    int fullStars = rating.floor();
+    bool hasHalfStar = (rating - fullStars) >= 0.5;
+
+    for (int i = 0; i < fullStars; i++) {
+      stars.add(const Icon(Icons.star, color: Colors.amber, size: 16));
+    }
+
+    if (hasHalfStar) {
+      stars.add(const Icon(Icons.star_half, color: Colors.amber, size: 16));
+    }
+
+    int remainingStars = 5 - stars.length;
+    for (int i = 0; i < remainingStars; i++) {
+      stars.add(const Icon(Icons.star_border, color: Colors.amber, size: 16));
+    }
+
+    return Row(children: stars);
   }
 }
 
