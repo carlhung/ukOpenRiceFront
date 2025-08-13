@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:ukopenrice/view_controllers/home_screen.dart';
 import '../helpers.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -228,6 +229,11 @@ class Httpclient {
   Future<void> uploadRestaurantImages(List<BodyPair> parameters) async {
     final uri = getUri('/uploadrestaurantimages');
     await _postImagesAndJson(uri, parameters);
+  }
+
+  Future<List<SearchResult>> search(SearchFilter filter) async {
+    // TODO
+    return [];
   }
 
   Future<ResturantInfo> getRestaurantDetails(String name) async {

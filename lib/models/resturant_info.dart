@@ -117,7 +117,8 @@ final class ResturantInfo {
     final Map<String, dynamic> data = {};
 
     void addIfNotEmpty(String key, String value) {
-      if (value.isNotEmpty) data[key] = value.trim();
+      final v = value.trim();
+      if (v.isNotEmpty) data[key] = v;
     }
 
     addIfNotEmpty('restuarantChineseName', restuarantChineseName);

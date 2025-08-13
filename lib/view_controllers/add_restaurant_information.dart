@@ -7,7 +7,7 @@ import 'package:ukopenrice/models/resturant_info.dart';
 import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 import 'package:ukopenrice/view_controllers/open_hours_selector.dart';
-import 'package:ukopenrice/view_controllers/price_selector.dart';
+// import 'package:ukopenrice/view_controllers/price_selector.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 
 class AddResturantInformation extends StatefulWidget {
@@ -39,7 +39,8 @@ final class _AddResturantInformationState
   bool _takeaway = false;
   bool _delivery = false;
   // final priceRangeCtrllor = TextEditingController();
-  PriceFilter? _currentFilter;
+  // PriceFilter? _currentFilter;
+  String priceRange = "";
   final extraInfoCtrllor = TextEditingController();
 
   Map<String, List<TimeSlot>> schedule =
@@ -76,7 +77,8 @@ final class _AddResturantInformationState
         phoneCtrllor.text.isNotEmpty &&
         openHoursTosavableString().isNotEmpty &&
         isScheduleInOrder() &&
-        (_currentFilter?.toSavableString.isNotEmpty ?? false) &&
+        // (_currentFilter?.toSavableString.isNotEmpty ?? false) &&
+        priceRange.isNotEmpty &&
         selectedPayments.isNotEmpty) {
       if (cuisineCtrllor.text.isEmpty) {
         return null;
@@ -112,8 +114,10 @@ final class _AddResturantInformationState
         selectedPayments: selectedPayments,
         takeaway: _takeaway,
         delivery: _delivery,
-        priceRange: _currentFilter!.toSavableString.trim(),
-        currencyCode: _currentFilter?.currency?.code ?? Currency.gbp.code,
+        // priceRange: _currentFilter!.toSavableString.trim(),
+        // currencyCode: _currentFilter?.currency?.code ?? Currency.gbp.code,
+        priceRange: priceRange,
+        currencyCode: "GBP",
         extraInfo: extraInfoCtrllor.text.trim(),
         timezone: timezone,
       );
@@ -331,14 +335,15 @@ final class _AddResturantInformationState
                 _delivery = value;
               }),
               // _createTextField(priceRangeCtrllor, "Price Range (Required)"),
-              Text("Price Range (Required):"),
-              PriceSelectorWidget(
-                onPriceChanged: (filter) {
-                  setState(() {
-                    _currentFilter = filter;
-                  });
-                },
-              ),
+              // Text("Price Range (Required):"),
+              // PriceSelectorWidget(
+              //   onPriceChanged: (filter) {
+              //     setState(() {
+              //       _currentFilter = filter;
+              //     });
+              //   },
+              // ),
+              _buildDropdown("Price Range (Required)", createPriceRangeList()),
               _createTextView(extraInfoCtrllor, "Extra Information"),
               ElevatedButton(
                 onPressed: () async {
@@ -373,6 +378,16 @@ final class _AddResturantInformationState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDropdown(String label, List<String> options) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(labelText: label),
+      items: options
+          .map((opt) => DropdownMenuItem(value: opt, child: Text("£$opt")))
+          .toList(),
+      onChanged: (value) => priceRange = value ?? "",
     );
   }
 

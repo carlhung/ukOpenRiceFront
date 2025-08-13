@@ -19,3 +19,12 @@ extension StringCasingExtension on String {
     ' ',
   ).split(' ').map((str) => str.toCapitalized).join(' ');
 }
+
+List<String> createPriceRangeList() {
+  List<String> arr = List.generate(9, (index) {
+    int value = (index + 1) * 10;
+    return '$value-${value + 10}';
+  });
+
+  return ["1-10"] + arr + ["100+"];
+}

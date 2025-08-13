@@ -24,13 +24,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final passwordController = TextEditingController();
   var cuisine = '';
   var city = '';
-  var stars = '';
+  int? starsIndex;
   var isOpenNowSelected = false;
   final httpClient = Httpclient.shared;
   // bool isFilterApplied = false;
   List<String> cityList = [];
   List<String> cuisineList = [];
   final starList = ['★☆☆☆☆', '★★☆☆☆', '★★★☆☆', '★★★★☆', '★★★★★'];
+  List<SearchResult> searchResults = [];
+
+  //   List<String> starList() {
+  //   const String star = "★";
+  //   const String nonStar = "☆";
+
+  //   return List.generate(5, (index) {
+  //     int numOfStar = index + 1;
+  //     return star * numOfStar + nonStar * (5 - numOfStar);
+  //   });
+  // }
 
   @override
   void initState() {
@@ -259,13 +270,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 });
               }),
-              _createTextButton(stars.isEmpty ? "Rating" : stars, () {
-                _showPicker(context, starList, (str) {
-                  setState(() {
-                    stars = str;
+              _createTextButton(
+                starsIndex == null ? "Rating" : starList[starsIndex!],
+                () {
+                  _showPicker(context, starList, (str) {
+                    setState(() {
+                      final index = starList.indexOf(str);
+                      starsIndex = index;
+                    });
                   });
-                });
-              }),
+                },
+              ),
               _createTextButton(
                 "Open Now",
                 () {
@@ -277,10 +292,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? const Color.fromARGB(255, 192, 6, 3)
                     : const Color.fromARGB(255, 246, 243, 243),
               ),
-              _createTextButton("Apply Filter", () {
-                setState(() {
-                  // TODO: call API to get data
-                });
+              _createTextButton("Apply Filter", () async {
+                _handleSearch();
               }, backgroundColor: const Color.fromARGB(255, 192, 6, 3)),
               _createTextButton("Reset", () {
                 setState(() {
@@ -318,6 +331,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _handleSearch() async {
+    int? rating;
+    if (starsIndex != null) rating = starsIndex! + 1;
+    final filter = SearchFilter(rating, city, cuisine, getUTC());
+    final results = await httpClient.search(filter);
+    setState(() {
+      searchResults = results;
+    });
+  }
+
+  String getUTC() {
+    DateTime utcNow = DateTime.now().toUtc();
+    return utcNow.toIso8601String();
+  }
+
   Widget _writeReviewButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
@@ -335,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _reset() {
     city = '';
     cuisine = '';
-    stars = '';
+    starsIndex = null;
     isOpenNowSelected = false;
   }
 
@@ -363,12 +391,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-  }
-
-  List<Widget> _createCityAndNameButtonList() {
-    return cityList.map((city) {
-      return _cityButton(city);
-    }).toList();
   }
 
   Widget _createTextButton(
@@ -483,4 +505,44 @@ T getRandomElement<T>(List<T> list) {
   // Pick a random element
   T randomItem = list[random.nextInt(list.length)];
   return randomItem;
+}
+
+class SearchFilter {
+  int? rating;
+  String city;
+  String cuisine;
+  // Iso8601
+  String timeInUTC;
+
+  SearchFilter(this.rating, this.city, this.cuisine, this.timeInUTC);
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+
+    void addIfNotEmpty(String key, String value) {
+      final v = value.trim();
+      if (v.isNotEmpty) data[key] = v;
+    }
+
+    addIfNotEmpty('city', city);
+    addIfNotEmpty('cuisine', cuisine);
+    addIfNotEmpty("timeInUTC", timeInUTC);
+    if (rating != null) data["rating"] = rating;
+    return data;
+  }
+}
+
+class SearchResult {
+  final String name;
+  final String city;
+  final String cuisine;
+  final String priceRange;
+  final int avgRating;
+  SearchResult(
+    this.name,
+    this.city,
+    this.cuisine,
+    this.priceRange,
+    this.avgRating,
+  );
 }
