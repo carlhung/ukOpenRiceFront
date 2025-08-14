@@ -357,8 +357,14 @@ class Httpclient {
         body.add(fileBodySuffix);
       } else if (value is ImagesBodyValue) {
         for (var i = 0; i < value.images.length; i++) {
-          final filename = "image$i.jpg";
-          final data = await convertToJpgBytes(value.images[i]);
+          final String filename;
+          if (value.images[i].name.isNotEmpty) {
+            filename = '${value.images[i].name}.jpg';
+          } else {
+            filename = "image$i.jpg";
+          }
+
+          final data = await convertToJpgBytes(value.images[i].image);
           final mimetype = mimeType(data) ?? "application/octet-stream";
           final prefix = fileBodyPrefix(boundary, name, filename, mimetype);
           body.add(prefix);
@@ -464,8 +470,10 @@ class BodyPair {
 }
 
 final class ImagesBodyValue extends BodyValue {
-  final List<XFile> images;
+  final List<XfileWithName> images;
   ImagesBodyValue(this.images);
+  ImagesBodyValue.fromXFiles(List<XFile> images)
+    : images = images.map((img) => XfileWithName(img)).toList();
 }
 
 class EncodableBodyValue<T extends Encodable> extends BodyValue {
@@ -482,4 +490,11 @@ class MapEncodable extends Encodable {
   Map<String, dynamic> toJson() {
     return value;
   }
+}
+
+class XfileWithName {
+  final String name;
+  final XFile image;
+
+  XfileWithName(this.image, {this.name = ''});
 }

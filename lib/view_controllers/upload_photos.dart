@@ -67,7 +67,9 @@ final class _UploadPhotosVCState extends State<UploadPhotosVC> {
                   onPressed: () async {
                     try {
                       await httpClient.uploadRestaurantImages([
-                        BodyPair(value: ImagesBodyValue(_selectedImages)),
+                        BodyPair(
+                          value: ImagesBodyValue.fromXFiles(_selectedImages),
+                        ),
                         BodyPair(
                           value: EncodableBodyValue(
                             RestaurantName(name: restaurantEnglishName),

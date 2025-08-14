@@ -81,7 +81,9 @@ class ReviewFormState extends State<ReviewForm> {
                       final wrappedMap = MapEncodable(value: _formData);
                       await httpClient.postReview([
                         BodyPair(value: EncodableBodyValue(wrappedMap)),
-                        BodyPair(value: ImagesBodyValue(_selectedImages)),
+                        BodyPair(
+                          value: ImagesBodyValue.fromXFiles(_selectedImages),
+                        ),
                       ]);
                       if (context.mounted) {
                         Navigator.popUntil(
