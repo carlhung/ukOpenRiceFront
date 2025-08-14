@@ -7,20 +7,24 @@ import 'package:ukopenrice/models/resturant_info.dart';
 import 'package:ukopenrice/models/http_client.dart';
 import 'package:ukopenrice/routes.dart';
 import 'package:ukopenrice/view_controllers/open_hours_selector.dart';
-// import 'package:ukopenrice/view_controllers/price_selector.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class AddResturantInformation extends StatefulWidget {
-  const AddResturantInformation({super.key});
+class RestaurantUploadForm extends StatefulWidget {
+  const RestaurantUploadForm({super.key});
 
   @override
-  State<AddResturantInformation> createState() =>
-      _AddResturantInformationState();
+  State<RestaurantUploadForm> createState() => _RestaurantUploadFormState();
 }
 
-final class _AddResturantInformationState
-    extends State<AddResturantInformation> {
+final class _RestaurantUploadFormState extends State<RestaurantUploadForm> {
   final httpClient = Httpclient.shared;
+  final ImagePicker picker = ImagePicker();
+  List<XFile> _selectedImages = [];
+  XFile? _profileImage;
+
+  // Restaurant information controllers
   final restuarantChineseNameCtrllor = TextEditingController();
   final restuarantEnglishNameCtrllor = TextEditingController();
   final cuisineCtrllor = TextEditingController();
@@ -38,8 +42,6 @@ final class _AddResturantInformationState
   Set<Payment> selectedPayments = {};
   bool _takeaway = false;
   bool _delivery = false;
-  // final priceRangeCtrllor = TextEditingController();
-  // PriceFilter? _currentFilter;
   String priceRange = "";
   final extraInfoCtrllor = TextEditingController();
 
@@ -77,7 +79,6 @@ final class _AddResturantInformationState
         phoneCtrllor.text.isNotEmpty &&
         openHoursTosavableString().isNotEmpty &&
         isScheduleInOrder() &&
-        // (_currentFilter?.toSavableString.isNotEmpty ?? false) &&
         priceRange.isNotEmpty &&
         selectedPayments.isNotEmpty) {
       if (cuisineCtrllor.text.isEmpty) {
@@ -114,8 +115,6 @@ final class _AddResturantInformationState
         selectedPayments: selectedPayments,
         takeaway: _takeaway,
         delivery: _delivery,
-        // priceRange: _currentFilter!.toSavableString.trim(),
-        // currencyCode: _currentFilter?.currency?.code ?? Currency.gbp.code,
         priceRange: priceRange,
         currencyCode: "GBP",
         extraInfo: extraInfoCtrllor.text.trim(),
@@ -218,6 +217,109 @@ final class _AddResturantInformationState
     );
   }
 
+  Widget _buildDropdown(String label, List<String> options) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(labelText: label),
+      items: options
+          .map((opt) => DropdownMenuItem(value: opt, child: Text("£$opt")))
+          .toList(),
+      onChanged: (value) => priceRange = value ?? "",
+    );
+  }
+
+  Future<String> _getTimezone() async {
+    return await FlutterTimezone.getLocalTimezone();
+  }
+
+  Widget _buildProfileImageSection() {
+    return Column(
+      children: [
+        Text(
+          'Profile Image (Required)',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SizedBox(height: 10),
+        if (_profileImage != null)
+          Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Image.file(File(_profileImage!.path), fit: BoxFit.cover),
+          ),
+        SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () async {
+            final selectedImage = await picker.pickImage(
+              source: ImageSource.gallery,
+            );
+            setState(() {
+              _profileImage = selectedImage;
+            });
+          },
+          child: Text("Select Profile Image"),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageUploadSection() {
+    return Column(
+      children: [
+        Text(
+          'Restaurant Photos',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SizedBox(height: 10),
+        if (_selectedImages.isNotEmpty)
+          SizedBox(
+            height: 300,
+            child: GridView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: _selectedImages.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1,
+              ),
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Image.file(
+                    File(_selectedImages[index].path),
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+        Row(
+          spacing: 20,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final selectedImage = await picker.pickMultiImage();
+                setState(() {
+                  _selectedImages = selectedImage;
+                });
+              },
+              child: Text("Select Images"),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -228,6 +330,7 @@ final class _AddResturantInformationState
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 10,
             children: [
+              // Restaurant Information Section
               _createTextField(restuarantChineseNameCtrllor, "Name in Chinese"),
               _createTextField(
                 restuarantEnglishNameCtrllor,
@@ -313,13 +416,8 @@ final class _AddResturantInformationState
                   return MultiSelectCard(
                     value: payment.name,
                     label: payment.name,
-                    // selectedColor: Colors.blue,
-                    // unselectedColor: Colors.grey,
                   );
                 }).toList(),
-                // onMaximumSelected: (allSelectedItems, selectedItem) {
-                //   // CustomSnackBar.showInSnackBar('The limit has been reached', context);
-                // },
                 onChange: (allSelectedItems, selectedItem) {
                   setState(() {
                     selectedPayments = allSelectedItems
@@ -334,28 +432,49 @@ final class _AddResturantInformationState
               _createTickBox("delivery", _delivery, (value) {
                 _delivery = value;
               }),
-              // _createTextField(priceRangeCtrllor, "Price Range (Required)"),
-              // Text("Price Range (Required):"),
-              // PriceSelectorWidget(
-              //   onPriceChanged: (filter) {
-              //     setState(() {
-              //       _currentFilter = filter;
-              //     });
-              //   },
-              // ),
               _buildDropdown("Price Range (Required)", createPriceRangeList()),
               _createTextView(extraInfoCtrllor, "Extra Information"),
+
+              // Profile Image Section
+              _buildProfileImageSection(),
+              SizedBox(height: 20),
+
+              // Image Upload Section
+              _buildImageUploadSection(),
+
               ElevatedButton(
                 onPressed: () async {
                   final info = await _createResturantInfo();
-                  if (info != null) {
+                  if (info != null && _profileImage != null) {
                     try {
-                      await httpClient.submitRestaurantInformation(info);
+                      final wrappedMap = MapEncodable(value: info.toJson());
+                      await httpClient.submitRestaurantInformation([
+                        BodyPair(value: EncodableBodyValue(wrappedMap)),
+                        BodyPair(
+                          value: ImagesBodyValue(
+                            [XfileWithName(_profileImage!, name: 'profile')] +
+                                _selectedImages
+                                    .map((elm) => XfileWithName(elm))
+                                    .toList(),
+                          ),
+                        ),
+                        // BodyPair(
+                        //   value: ImagesBodyValue.fromXFiles(_selectedImages),
+                        // ),
+                      ]);
+                      // example:
+                      // final wrappedMap = MapEncodable(value: _formData);
+                      // await httpClient.postReview([
+                      //   BodyPair(value: EncodableBodyValue(wrappedMap)),
+                      //   BodyPair(
+                      //     value: ImagesBodyValue.fromXFiles(_selectedImages),
+                      //   ),
+                      // ]);
+
                       if (context.mounted) {
-                        Navigator.pushNamed(
+                        Navigator.popUntil(
                           context,
-                          Routes.uploadPhotoScreen,
-                          arguments: info.restuarantEnglishName,
+                          ModalRoute.withName(Routes.restaurantInputMode),
                         );
                       }
                     } catch (e) {
@@ -372,7 +491,7 @@ final class _AddResturantInformationState
                     }
                   }
                 },
-                child: Text("Submit"),
+                child: Text("Submit Restaurant & Photos"),
               ),
             ],
           ),
@@ -380,20 +499,14 @@ final class _AddResturantInformationState
       ),
     );
   }
+}
 
-  Widget _buildDropdown(String label, List<String> options) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(labelText: label),
-      items: options
-          .map((opt) => DropdownMenuItem(value: opt, child: Text("£$opt")))
-          .toList(),
-      onChanged: (value) => priceRange = value ?? "",
-    );
-  }
+final class RestaurantName extends Encodable {
+  final String name;
+  RestaurantName({required this.name});
 
-  Future<String> _getTimezone() async {
-    return await FlutterTimezone.getLocalTimezone();
-  }
+  @override
+  Map<String, dynamic> toJson() => {"restaurant name": name};
 }
 
 // https://www.gov.uk/government/publications/list-of-cities/list-of-cities-html#fn:1
@@ -484,36 +597,3 @@ Jamestown
 """
         .split("\n")
         .toList();
-
-// 1.餐廳基本資料
-// 餐廳名稱（中英文）
-// 餐廳分類（例如：中餐、日式、火鍋、茶餐廳…）
-// 餐廳簡介（可多語言）
-// 地址（建議接 Google Map API，自動地圖）
-// 聯絡電話
-// 網站 / Facebook / IG
-// 電郵
-
-// 2.餐廳營業資訊
-// 營業時間（星期一至日）
-// 是否接受訂座
-// 是否接受信用卡
-// 是否提供外賣 / 自取
-// 價格範圍（$ / $$ / $$$）
-// 特別日子／公眾假期營業資訊
-
-// 3,餐廳圖片
-// 封面圖（橫向）
-// 圖片集（可多張）
-// 餐牌圖片（如有）
-// 建議圖片上傳功能支援「拖拉上傳 + 自動壓縮尺寸」
-
-// 4.⁠ ⁠餐廳狀態管理
-// 是否啟用／下架
-// 是否推薦（如放首頁）
-// 是否付費商戶（可結合付費廣告）
-
-// 5.⁠ ⁠用戶評論管理
-// 查看用戶評論／星級
-// 管理違規留言（刪除、封鎖）
-// 回覆評論（如有商戶登入）

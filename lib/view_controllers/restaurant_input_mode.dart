@@ -35,12 +35,6 @@ final class RestaurantInputMode extends StatelessWidget {
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigator.pushNamed(context, Routes.addRestaurantInfoScreen);
-              },
-              child: Text("upload restuarant image"),
-            ),
           ],
         ),
       ),

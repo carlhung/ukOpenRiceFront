@@ -193,32 +193,10 @@ class Httpclient {
     throw Exception(data.toString());
   }
 
-  Future<void> submitRestaurantInformation(ResturantInfo info) async {
+  Future<void> submitRestaurantInformation(List<BodyPair> parameters) async {
     await reloginWrapper(() async {
       final uri = getUri('/submitrestaurantinformation');
-
-      final body = jsonEncode(info.toJson());
-
-      final response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-        body: body,
-      );
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        final String? result = data["result"];
-        if (result == "successful") {
-        } else {
-          throw handlerFailure(data);
-        }
-      } else if (response.statusCode == 401) {
-        throw Unauthorized401Exception();
-      } else {
-        throw handlerFailure(data);
-      }
+      await _postImagesAndJson(uri, parameters);
     });
   }
 
@@ -235,27 +213,27 @@ class Httpclient {
   Future<List<SearchResult>> search(SearchFilter filter) async {
     final uri = getUri('/search_restaurants');
     final body = jsonEncode(filter.toJson());
-    return await reloginWrapper(() async {
-      final response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-        body: body,
-      );
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        final results = (data["result"] as List)
-            .map((e) => SearchResult.fromJson(e))
-            .toList();
-        return results;
-      } else if (response.statusCode == 401) {
-        throw Unauthorized401Exception();
-      } else {
-        throw handlerFailure(data);
-      }
-    });
+    // return await reloginWrapper(() async {
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: body,
+    );
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final results = (data["result"] as List)
+          .map((e) => SearchResult.fromJson(e))
+          .toList();
+      return results;
+    } else if (response.statusCode == 401) {
+      throw Unauthorized401Exception();
+    } else {
+      throw handlerFailure(data);
+    }
+    // });
   }
 
   Future<ResturantInfo> getRestaurantDetails(String name) async {
