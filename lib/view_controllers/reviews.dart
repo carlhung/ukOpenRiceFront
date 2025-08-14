@@ -398,35 +398,6 @@ class _UploadImageComponentState extends State<UploadImageComponent> {
               },
               child: Text("Select Image"),
             ),
-            // ElevatedButton(
-            //   onPressed: () async {
-            //     try {
-            //       await httpClient.uploadRestaurantImages([
-            //         BodyPair(
-            //           key: "myImage",
-            //           value: ImagesBodyValue(_selectedImages),
-            //         ),
-            //         BodyPair(
-            //           key: "restaurant info",
-            //           value: EncodableBodyValue(
-            //             RestaurantName(name: restaurantEnglishName),
-            //           ),
-            //         ),
-            //       ]);
-            //       if (context.mounted) {
-            //         Navigator.Until(
-            //           context,
-            //           ModalRoute.withName(Routes.restaurantInputMode),
-            //         );
-            //       }
-            //     } catch (e) {
-            //       if (context.mounted) {
-            //         showErrorOnSnackBar(context, e);
-            //       }
-            //     }
-            //   },
-            //   child: Text("Upload"),
-            // ),
           ],
         ),
       ],

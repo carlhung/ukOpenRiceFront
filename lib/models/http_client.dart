@@ -205,11 +205,6 @@ class Httpclient {
     await _postImagesAndJson(uri, parameters);
   }
 
-  Future<void> uploadRestaurantImages(List<BodyPair> parameters) async {
-    final uri = getUri('/uploadrestaurantimages');
-    await _postImagesAndJson(uri, parameters);
-  }
-
   Future<List<SearchResult>> search(SearchFilter filter) async {
     final uri = getUri('/search_restaurants');
     final body = jsonEncode(filter.toJson());
