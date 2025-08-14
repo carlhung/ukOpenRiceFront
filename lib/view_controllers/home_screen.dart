@@ -582,13 +582,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildThumbnailWidget(String restaurantName) {
+    final thumbnailPath = httpClient.getRestaurantProfileThumbnail(
+      restaurantName,
+    );
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 60,
         height: 60,
         color: Colors.grey[300],
-        child: Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
+        child: FadeInImage.assetNetwork(
+          width: 100,
+          height: 80,
+          fit: BoxFit.cover,
+          // TODO: add placeholder image
+          placeholder: 'assets/city_placeholder.jpg',
+          image: thumbnailPath,
+          imageErrorBuilder: (context, error, stackTrace) =>
+              // Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
+              Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
+        ),
       ),
     );
   }

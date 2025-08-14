@@ -52,6 +52,11 @@ class Httpclient {
     );
   }
 
+  String getRestaurantProfileThumbnail(String name) {
+    String encodedString = Uri.encodeComponent(name);
+    return 'https://$hostEndPoint:$port/static/RestaurantData/$encodedString/thumbs/profile.jpg';
+  }
+
   String getCityURL(String city) {
     String encodedString = Uri.encodeComponent(
       city.toLowerCase(),
