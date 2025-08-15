@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:ukopenrice/models/pagination.dart';
 import 'package:ukopenrice/view_controllers/home_screen.dart';
 import '../helpers.dart';
 import 'dart:convert';
@@ -210,7 +211,7 @@ class Httpclient {
     await _postImagesAndJson(uri, parameters);
   }
 
-  Future<List<SearchResult>> search(SearchFilter filter) async {
+  Future<(List<SearchResult>, Pagination)> search(SearchFilter filter) async {
     final uri = getUri('/search_restaurants');
     final body = jsonEncode(filter.toJson());
     // return await reloginWrapper(() async {
@@ -227,7 +228,9 @@ class Httpclient {
       final results = (data["result"] as List)
           .map((e) => SearchResult.fromJson(e))
           .toList();
-      return results;
+      // final pagination =(data['pagination')
+      final pagination = Pagination.fromJson(data['pagination']);
+      return (results, pagination);
     } else if (response.statusCode == 401) {
       throw Unauthorized401Exception();
     } else {

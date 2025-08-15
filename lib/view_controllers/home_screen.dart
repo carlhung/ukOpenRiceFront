@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:ukopenrice/helpers.dart';
 import 'package:ukopenrice/l10n/app_localizations.dart';
 import 'package:ukopenrice/models/http_client.dart';
+import 'package:ukopenrice/models/pagination.dart';
+import 'package:ukopenrice/models/settings.dart';
 import 'package:ukopenrice/routes.dart';
 import 'package:flutter_picker_plus/flutter_picker_plus.dart';
 
@@ -28,11 +30,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String priceRange = '';
   var isOpenNowSelected = false;
   final httpClient = Httpclient.shared;
+  final settings = Settings.shared;
   // bool isFilterApplied = false;
   List<String> cityList = [];
   List<String> cuisineList = [];
   final starList = ['★☆☆☆☆', '★★☆☆☆', '★★★☆☆', '★★★★☆', '★★★★★'];
   List<SearchResult> searchResults = [];
+  int page = 1;
+  Pagination? pagination;
 
   //   List<String> starList() {
   //   const String star = "★";
@@ -361,15 +366,30 @@ class _HomeScreenState extends State<HomeScreen> {
       cuisine,
       isOpenNowSelected ? getUTC() : '',
       priceRange.replaceAll('£', ''),
+      page,
+      settings.pageSize,
     );
-    final results = await httpClient.search(filter);
+    if (isNoFilterAdded) {
+      return;
+    }
+
+    final (results, pagination) = await httpClient.search(filter);
     setState(() {
       if (results.isNotEmpty) {
         searchResults = results;
+        this.pagination = pagination;
       } else {
         _reset();
       }
     });
+  }
+
+  bool get isNoFilterAdded {
+    return (starsIndex == null &&
+        city.isEmpty &&
+        cuisine.isEmpty &&
+        !isOpenNowSelected &&
+        priceRange.isEmpty);
   }
 
   String getUTC() {
@@ -398,6 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
     starsIndex = null;
     isOpenNowSelected = false;
     searchResults = [];
+    pagination = null;
   }
 
   Widget _cityButton(String city) {
@@ -591,15 +612,16 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 60,
         height: 60,
         color: Colors.grey[300],
-        child: FadeInImage.assetNetwork(
+        child: Image.network(
+          thumbnailPath,
           width: 100,
           height: 80,
           fit: BoxFit.cover,
-          // TODO: add placeholder image
-          placeholder: 'assets/city_placeholder.jpg',
-          image: thumbnailPath,
-          imageErrorBuilder: (context, error, stackTrace) =>
-              // Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Icon(Icons.restaurant, size: 30, color: Colors.grey[600]);
+          },
+          errorBuilder: (context, error, stackTrace) =>
               Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
         ),
       ),
@@ -643,6 +665,8 @@ class SearchFilter {
   String prceRange;
   // Iso8601
   String timeInUTC;
+  int page;
+  int pageSize;
 
   SearchFilter(
     this.rating,
@@ -650,6 +674,8 @@ class SearchFilter {
     this.cuisine,
     this.timeInUTC,
     this.prceRange,
+    this.page,
+    this.pageSize,
   );
 
   Map<String, dynamic> toJson() {
@@ -664,6 +690,8 @@ class SearchFilter {
     addIfNotEmpty('cuisine', cuisine);
     addIfNotEmpty("time_in_utc", timeInUTC);
     addIfNotEmpty('price_range', prceRange);
+    data['page_size'] = pageSize;
+    data['page'] = page;
     if (rating != null) data["rating"] = rating;
     return data;
   }
