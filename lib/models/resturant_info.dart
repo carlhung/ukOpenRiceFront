@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:ukopenrice/models/http_client.dart';
 
 final class Payment {
   final String name;
@@ -179,8 +181,12 @@ final class ResturantInfo {
       returnedOpeningHours: (json['returnOpeningHours'] as List)
           .map((hour) => OpeningHour.fromJson(hour as Map<String, dynamic>))
           .toList(),
-      originalImages: List<String>.from(json['original_images'] as List),
-      thumbnilImages: List<String>.from(json['thumbnil_images'] as List),
+      originalImages: List<String>.from(
+        json['original_images'] as List,
+      ).map((p) => Httpclient.shared.createImagePath(p)).toList(),
+      thumbnilImages: List<String>.from(
+        json['thumbnil_images'] as List,
+      ).map((p) => Httpclient.shared.createImagePath(p)).toList(),
     );
   }
 }

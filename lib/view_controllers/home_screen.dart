@@ -603,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.pushNamed(
                 context,
                 Routes.restaurantDetails,
-                arguments: details,
+                arguments: (details, result),
               );
             }
           } catch (e) {

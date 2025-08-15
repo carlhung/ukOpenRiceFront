@@ -58,6 +58,10 @@ class Httpclient {
     return 'https://$hostEndPoint:$port/static/RestaurantData/$encodedString/thumbs/profile.jpg';
   }
 
+  String createImagePath(String path) {
+    return 'https://$hostEndPoint:${port}/$path';
+  }
+
   String getCityURL(String city) {
     String encodedString = Uri.encodeComponent(
       city.toLowerCase(),
