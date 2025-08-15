@@ -165,7 +165,10 @@ final class ResturantInfo {
       email: json['email'] ?? "",
       accessReservation:
           json['access_reservation'] == 1 || json['access_reservation'] == true,
-      selectedPayments: json['selected_payments'],
+      selectedPayments: (json['selected_payments'] as String)
+          .split(',')
+          .map((s) => Payment(name: s.trim()))
+          .toSet(),
       takeaway: json['takeaway'] == 1 || json['takeaway'] == true,
       delivery: json['delivery'] == 1 || json['delivery'] == true,
       priceRange: json['price_range'] ?? "",

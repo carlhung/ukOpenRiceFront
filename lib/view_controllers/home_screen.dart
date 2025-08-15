@@ -595,8 +595,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               )
             : null,
-        onTap: () {
-          // Handle restaurant detail navigation
+        onTap: () async {
+          final name = result.name;
+          try {
+            final details = await httpClient.getRestaurantDetails(name);
+            if (mounted) {
+              Navigator.pushNamed(
+                context,
+                Routes.restaurantDetails,
+                arguments: details,
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              showErrorOnSnackBar(context, e);
+            }
+          }
         },
       ),
     );
