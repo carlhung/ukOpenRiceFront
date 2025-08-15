@@ -626,16 +626,14 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 60,
         height: 60,
         color: Colors.grey[300],
-        child: Image.network(
-          thumbnailPath,
+        child: FadeInImage.assetNetwork(
           width: 100,
           height: 80,
           fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Icon(Icons.restaurant, size: 30, color: Colors.grey[600]);
-          },
-          errorBuilder: (context, error, stackTrace) =>
+          placeholder: 'assets/dining.png',
+          image: thumbnailPath,
+          imageErrorBuilder: (context, error, stackTrace) =>
+              // Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
               Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
         ),
       ),
