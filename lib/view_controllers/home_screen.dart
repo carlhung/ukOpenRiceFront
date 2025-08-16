@@ -626,14 +626,13 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 60,
         height: 60,
         color: Colors.grey[300],
-        child: FadeInImage.assetNetwork(
-          width: 100,
-          height: 80,
+        child: FadeInImage(
+          width: 60,
+          height: 60,
           fit: BoxFit.cover,
-          placeholder: 'assets/dining.png',
-          image: thumbnailPath,
+          placeholder: const AssetImage('assets/dining.png'),
+          image: NetworkImage(thumbnailPath),
           imageErrorBuilder: (context, error, stackTrace) =>
-              // Image.asset('assets/city_placeholder.jpg', fit: BoxFit.cover),
               Icon(Icons.restaurant, size: 30, color: Colors.grey[600]),
         ),
       ),
